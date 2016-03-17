@@ -1,5 +1,8 @@
 # Gugulele (G6)
-OpenSCAD scripts to generate parametric 3D models of gourd shaped ukuleles suitable for 3D printing.
+OpenSCAD scripts to generate parametric 3D models of gourd shaped ukuleles suitable for 3D printing.  Check out some of the generated models here:
+
+ * http://www.thingiverse.com/thing:1007035
+ * http://www.thingiverse.com/thing:1057746
 
 ## Usage
 1. include G6 into an openscad project
