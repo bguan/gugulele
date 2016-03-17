@@ -1,0 +1,5 @@
+# Generated 3D model files
+*.stl
+*.obj
+*.ply
+*.wrl
