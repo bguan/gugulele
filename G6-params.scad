@@ -7,7 +7,8 @@ FUSE_SHIFT = 0.01; // shift to avoid Manifold when fusing objects
 STR_HOLE_RAD = 1;
 INCH_TO_MM = 25.4;
 SND_AIR_SPEED = 343; // meter per seconds
-RND_RAD = 0;
+TOP_RND_RAD = 0;
+BOT_RND_RAD = 0;
 
 // rendering controls
 HIRES = 12;
@@ -34,13 +35,14 @@ SHOW_SCREWS = false;
 SHOW_PICKUP = false;
 SHOW_CUTOUT = false;
 SHOW_CROSS_SECTION = false;
+SKIP_ASSEMBLY = false;
 
 // High level params: Model specific configs - expect frequent change
 MODEL = 0;
 HEAD_STYLE = 0; // 0 headless  1 headed  2 deco-headless
 TUNER_STYLE = 0; // 0 hole 1 friction 2 sealed geared 3 banjo planetary 4 gotoh UPT  
 SPINE_STYLE = 0;  // 0 none 1 neck only 2 whole body 3 angle thru body
-SNDHOLE_STYLE = 4; // 0.none 1.side 2.f-hole 3.side+F 4.top 5.side+top 6.oval 7.side+oval
+SNDHOLE_STYLE = 0; // 0.none 1.side 2.f-hole 3.side+F 4.top 5.side+top 6.oval 7.side+oval
 PICKUP_STYLE = 0;  // 0 none  1 end pin  2 side
 BRDG_STYLE = 0;  // 0 embed in body, 1 platform
 BRACE_STYLE = 0; // 0 none, 1 X, 2 +
@@ -61,6 +63,47 @@ NUM_STRS = [4, 4, 4, 4, 4, 6][MODEL];
 SCALE_LEN = [270, 330, 380, 430, 480, 650][MODEL];
 NUT_HOLE_GAP = [8.75, 9, 9.25, 9.5, 9.75, 8.5][MODEL];
 
+// Functions to expose calculation of various guord parameters
+function neck_tl_wth(nlen, nwth, nslope) = nwth +2*nlen*nslope;
+function shoulder_rtop(nlen, nwth, nslope) = nwth/2 + (nlen*nslope);
+function shoulder_atop(nslope) = atan(nslope);
+function shoulder_abot(nslope, flare) = (shoulder_atop(nslope) + flare)/2;
+function shoulder_curve_R(nlen, nwth, nslope, flare) = 
+            shoulder_rtop(nlen, nwth, nslope) /
+            (2*cos(shoulder_abot(nslope, flare)) -cos(shoulder_atop(nslope)));
+function shoulder_rbot(nlen, nwth, nslope, flare) = 
+                    fnl_bottom_radius(
+                            shoulder_curve_R(nlen, nwth, nslope, flare), 
+                            shoulder_rtop(nlen, nwth, nslope), 
+                            shoulder_atop(nslope), 
+                            shoulder_abot(nslope, flare));
+function body_rad(nlen, nwth, nslope, flare) = 
+            shoulder_rbot(nlen, nwth, nslope, flare)/cos(shoulder_abot(nslope, flare));
+function shoulder_len_pre(nlen, nwth, nslope, flare) = 
+            fnl_height(shoulder_curve_R(nlen, nwth, nslope, flare), 
+                        shoulder_atop(nslope), shoulder_abot(nslope, flare));
+function torso_len_pre(nlen, nwth, nslope, flare) = 
+            sqrt(pow(body_rad(nlen, nwth, nslope, flare),2) 
+            -pow(shoulder_rbot(nlen, nwth, nslope, flare),2));
+function front_scale(nlen, nwth, nslope, mlen, flare) = 
+            (mlen - nlen)/(shoulder_len_pre(nlen, nwth, nslope, flare) 
+            +torso_len_pre(nlen, nwth, nslope, flare));
+function back_scale(nlen, nwth, nslope, mlen, flare, back_ratio) = 
+            front_scale(nlen, nwth, nslope, mlen, flare)/back_ratio;
+function shoulder_len(nlen, nwth, nslope, mlen, flare) = 
+            shoulder_len_pre(nlen, nwth, nslope, flare) *
+            front_scale(nlen, nwth, nslope, mlen, flare);
+function torso_len(nlen, nwth, nslope, mlen, flare) = 
+            torso_len_pre(nlen, nwth, nslope, flare)*
+            front_scale(nlen, nwth, nslope, mlen, flare);    
+function butt_len(nlen, nwth, nslope, mlen, flare, back_ratio) = 
+            body_rad(nlen, nwth, nslope, flare)*
+            back_scale(nlen, nwth, nslope, mlen, flare, back_ratio);          
+function gourd_len(nlen, nwth, nslope, mlen, flare, back_ratio) = 
+            nlen +shoulder_len(nlen, nwth, nslope, mlen, flare) +
+            torso_len(nlen, nwth, nslope, mlen, flare) +
+            butt_len(nlen, nwth, nslope, mlen, flare, back_ratio);
+
 // Scales and ratios
 NECK_SLOPE = 1/48;
 TOP_SCALE = 1/9; 
@@ -73,16 +116,16 @@ CHAMBER_BODY_RATIO = [.9, .92, .94, .96, .97, .92][MODEL];
 CHAMBER_TOP_SCALE = .75*TOP_SCALE; 
 CHAMBER_BOTTOM_SCALE = 1*BOTTOM_SCALE;
 CHAMBER_UP_SHIFT = 1.5; 
-CHAMBER_FRONT_SHIFT = [10, 4, 4.5, 5, 6, 7][MODEL]; 
+CHAMBER_FRONT_SHIFT = [10, 4, 4.5, 5, 6, 7][MODEL]; //[10, 4, 5, 6.5, 7.5, 10][MODEL]; 
 CHAMBER_TILT = .5; 
 CHAMBER_BACK_RATIO = HEAD_STYLE == 1 ? .9 : 
-        !FORCE_TAIL_CAVITY && TUNER_STYLE == 3 ? [.87, .88, .89, .9, .91, .92][MODEL] :
-        !FORCE_TAIL_CAVITY && TUNER_STYLE == 4 ? [.9, .91, .92, .93, .94, .95][MODEL]:
+        !FORCE_TAIL_CAVITY && TUNER_STYLE == 3 ? [.83, .84, .85, .86, .87, .88][MODEL] :
+        !FORCE_TAIL_CAVITY && TUNER_STYLE == 4 ? [.90, .91, .92, .93, .94, .95][MODEL]:
         [.7, .76, .82, .88, .9, 1][MODEL]; 
 SOUND_PORT_SCALE = V_GAP > 0 ? [.5, 1.5, .25*BOTTOM_SCALE] : 
                     [.6, 1.5, .25*BOTTOM_SCALE];
 TOP_HOLE_RATIO = [.1961, .1721, .1596, .1459, .1526, .1815][MODEL]; // of body_rad
-OVAL_WTH_RATIO = [.0565, .0645, .0675, .0627, .0645, .056][MODEL]; // of body_rad
+OVAL_WTH_RATIO = [.0565, .0645, .0675, .062, .0645, .056][MODEL]; // of body_rad
 
 // angle of flare out at shoulder, between 45 - 180, affects girth 
 SHOULDER_FLARE = [98, 99.5, 101, 102.5, 104, 105.5][MODEL]; 
@@ -90,6 +133,8 @@ SHOULDER_FLARE = [98, 99.5, 101, 102.5, 104, 105.5][MODEL];
 // Body specs
 BUTT_CHOP = HEAD_STYLE == 1 ?[15, 16, 17, 18, 19, 20][MODEL] :0;
 BODY_TCK = 6; 
+
+// Endpin/pickup specs
 ENDPIN_RAD = 5; // for strap pin or 1/4" pick up jack 
 ENDPIN_DEP = 4;
 ENDPIN_DIP = HEAD_STYLE == 1 ? 36 : // angle pointing downward
@@ -158,26 +203,6 @@ HEADLESS_FRONT_GROOVE_PLCMT = [
     (HEAD_POKED ? -1.5: -1.6)*HEAD_MIDLEN, 0, 
     -.3*HEAD_MIDLEN];    
 
-// Tuner and String Guide specs
-TUNER_HOLE_RAD = [5, 2.5, 5, 5, 5][TUNER_STYLE] +RND_RAD; 
-TUNER_TOP_RAD = [7.5, 5.5, 8.5, 7.5, 7.5][TUNER_STYLE] +RND_RAD; 
-TUNER_BOT_RAD = [5, 11, 10, 8.5, 7.5][TUNER_STYLE] +RND_RAD; 
-TUNER_BOT_LEN = [23, 9, 8, 23, 14][TUNER_STYLE]; 
-TUNER_BTN_RAD = [12, 11, 11, 12, 9.5][TUNER_STYLE] +RND_RAD; 
-TUNER_GAP = max(25, max(TUNER_TOP_RAD, TUNER_BOT_RAD, TUNER_BTN_RAD)*2.1); 
-TUNER_BD_TCK = [13, 9, 13, 13, 10][TUNER_STYLE]; 
-TUNER_UPLIFT = [2, 2, 2, 1, 2][TUNER_STYLE]; // tail only
-HEAD_TUNER_WIDEN = 0;
-STR_GUIDE_ROD_RAD = 2.25;
-
-ANCHORPIN_RAD = RND_RAD > .5 ? 0 : [0, 0, 1, .7, .2][TUNER_STYLE]; 
-ANCHORPIN_OFFSET = [0, 0, 11, 6.8, 7][TUNER_STYLE]; 
-ANCHORPIN_DEP = [0, 0, 8, 3.5, 3][TUNER_STYLE];
-STR_HOLE_FROM_COUNTER = [15, 15, 22.5, 23, 17.5][TUNER_STYLE];
-ANCHORPIN_ANGLE = [45, 45, 60][HEAD_STYLE]; //45;
-PEGS_SHIFT = -HEAD_STEM + [-27,-28,-29,-30,-31,-30][MODEL]; // pegs plcmt
-PEGS_DIVIDE = MODEL < 5 ? .4 : .6; // gap ratio btw L/R rows
-
 // neck specs
 NECK_LEN = .5*SCALE_LEN;  
 NECK_HEAD_WTH = NUM_STRS * NUT_HOLE_GAP;
@@ -185,6 +210,31 @@ NECK_JOINT_LEN = .1*NECK_LEN;
 NECK_JOINT_WTH1 = .75 *NUM_STRS *NUT_HOLE_GAP;
 NECK_JOINT_WTH2 = V_GAP +F_GAP > 0 ? NECK_JOINT_WTH1*1.05 : NECK_JOINT_WTH1;
 NECK_JOINT_TCK = [9, 9, 9.25, 9.5, 9.75, 10][MODEL];
+
+// Derived params
+BODY_RAD = body_rad(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SHOULDER_FLARE);
+BODY_FRONT_SCALE= front_scale(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE); 
+BODY_BACK_SCALE = back_scale(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE, FRONT_BACK_RATIO);
+
+// Tuner and String Guide specs
+TUNER_HOLE_RAD = [5, 2.5, 5, 5, 5][TUNER_STYLE] + BOT_RND_RAD; 
+TUNER_TOP_RAD = [7.5, 5.5, 8.5, 7.5, 7.5][TUNER_STYLE] + TOP_RND_RAD; 
+TUNER_BOT_RAD = [5, 11, 10, 8.5, 7.5][TUNER_STYLE] + BOT_RND_RAD; 
+TUNER_BOT_LEN = [23, 9, 8, 23, 14][TUNER_STYLE]; 
+TUNER_BTN_RAD = [12, 11, 11, 12, 9.5][TUNER_STYLE] + BOT_RND_RAD; 
+TUNER_GAP = max(25, max(TUNER_TOP_RAD, TUNER_BOT_RAD, TUNER_BTN_RAD)*2.1); 
+TUNER_BD_TCK = [13, 9, 13, 13, 10][TUNER_STYLE]; 
+TUNER_UPLIFT = TOP_RND_RAD != BOT_RND_RAD ? 0 : [2, 2, 2, 1, 2][TUNER_STYLE]; // tail only
+HEAD_TUNER_WIDEN = 0;
+STR_GUIDE_ROD_RAD = 2.25;
+
+ANCHORPIN_RAD =  BOT_RND_RAD > .75 ? 0 : [0, 0, 1, .7, .2][TUNER_STYLE]; 
+ANCHORPIN_OFFSET = [0, 0, 11, 6.8, 7][TUNER_STYLE]; 
+ANCHORPIN_DEP = [0, 0, 8, 3.5, 3][TUNER_STYLE];
+STR_HOLE_FROM_COUNTER = [15, 15, 22.5, 23, 17.5][TUNER_STYLE];
+ANCHORPIN_ANGLE = [45, 45, 60][HEAD_STYLE]; //45;
+PEGS_SHIFT = -HEAD_STEM + [-27,-28,-29,-30,-31,-30][MODEL]; // pegs plcmt
+PEGS_DIVIDE = MODEL < 5 ? .4 : .6; // gap ratio btw L/R rows
 
 // Fretboard specs
 FRETBD_LEN = .66*SCALE_LEN; //[.66, .66, .66, .695, .695, .695][MODEL]*SCALE_LEN;
@@ -255,47 +305,6 @@ HEAD_SCREW_PREDEP = 5;
 HEAD_PIN_MODEL = "M6x60";
 HEAD_SCREW_PLCMT = (MODEL < 5 ? 3 : 4)*HEAD_SCREW_HEAD_RAD;
 
-// ALl these functions to expose calculation of various guord parameters
-function neck_tl_wth(nlen, nwth, nslope) = nwth +2*nlen*nslope;
-function shoulder_rtop(nlen, nwth, nslope) = nwth/2 + (nlen*nslope);
-function shoulder_atop(nslope) = atan(nslope);
-function shoulder_abot(nslope, flare) = (shoulder_atop(nslope) + flare)/2;
-function shoulder_curve_R(nlen, nwth, nslope, flare) = 
-            shoulder_rtop(nlen, nwth, nslope) /
-            (2*cos(shoulder_abot(nslope, flare)) -cos(shoulder_atop(nslope)));
-function shoulder_rbot(nlen, nwth, nslope, flare) = 
-                    fnl_bottom_radius(
-                            shoulder_curve_R(nlen, nwth, nslope, flare), 
-                            shoulder_rtop(nlen, nwth, nslope), 
-                            shoulder_atop(nslope), 
-                            shoulder_abot(nslope, flare));
-function body_rad(nlen, nwth, nslope, flare) = 
-            shoulder_rbot(nlen, nwth, nslope, flare)/cos(shoulder_abot(nslope, flare));
-function shoulder_len_pre(nlen, nwth, nslope, flare) = 
-            fnl_height(shoulder_curve_R(nlen, nwth, nslope, flare), 
-                        shoulder_atop(nslope), shoulder_abot(nslope, flare));
-function torso_len_pre(nlen, nwth, nslope, flare) = 
-            sqrt(pow(body_rad(nlen, nwth, nslope, flare),2) 
-            -pow(shoulder_rbot(nlen, nwth, nslope, flare),2));
-function front_scale(nlen, nwth, nslope, mlen, flare) = 
-            (mlen - nlen)/(shoulder_len_pre(nlen, nwth, nslope, flare) 
-            +torso_len_pre(nlen, nwth, nslope, flare));
-function back_scale(nlen, nwth, nslope, mlen, flare, back_ratio) = 
-            front_scale(nlen, nwth, nslope, mlen, flare)/back_ratio;
-function shoulder_len(nlen, nwth, nslope, mlen, flare) = 
-            shoulder_len_pre(nlen, nwth, nslope, flare) *
-            front_scale(nlen, nwth, nslope, mlen, flare);
-function torso_len(nlen, nwth, nslope, mlen, flare) = 
-            torso_len_pre(nlen, nwth, nslope, flare)*
-            front_scale(nlen, nwth, nslope, mlen, flare);    
-function butt_len(nlen, nwth, nslope, mlen, flare, back_ratio) = 
-            body_rad(nlen, nwth, nslope, flare)*
-            back_scale(nlen, nwth, nslope, mlen, flare, back_ratio);          
-function gourd_len(nlen, nwth, nslope, mlen, flare, back_ratio) = 
-            nlen +shoulder_len(nlen, nwth, nslope, mlen, flare) +
-            torso_len(nlen, nwth, nslope, mlen, flare) +
-            butt_len(nlen, nwth, nslope, mlen, flare, back_ratio);
-
 SPINE_LEN = 
     SPINE_STYLE == 0 ? 0 :
     SPINE_STYLE == 1 ? NECK_LEN -SPINE_PRE_LEN +(F_GAP > 0 ? FRETBD_TOUNGE_LEN: -5):
@@ -321,7 +330,8 @@ TUNER_CAVITY_DEP = HEAD_STYLE == 1 ? 0 :
              FRONT_BACK_RATIO) -(MODEL < 5 ? 1.5 : 2)*TUNER_GAP; 
 
 TUNER_FANOUT_RAD = butt_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, 
-                    SHOULDER_FLARE, FRONT_BACK_RATIO) -.35*TUNER_GAP -2*RND_RAD;
+                    SHOULDER_FLARE, FRONT_BACK_RATIO) 
+					-.4*TUNER_GAP -2*max(TOP_RND_RAD, BOT_RND_RAD);
 STR_GUIDE_PLCMT = SCALE_LEN + max(TUNER_CAVITY_DEP, .5*TUNER_FANOUT_RAD);
 STR_GUIDE_SET_OFF_BRDG = [1, 1.5, 2.25, 3, 3.5, 4.5][MODEL];
 

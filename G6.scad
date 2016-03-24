@@ -7,4 +7,4 @@ include <G6-assembly.scad>;
 
 $fn=DEFRES;
 
-assemble();
+ if (!SKIP_ASSEMBLY) assemble();

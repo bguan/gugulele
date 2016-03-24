@@ -112,11 +112,11 @@ module body() {
     shoulder_curve_R = shoulder_curve_R(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SHOULDER_FLARE); 
     shoulder_rbot = shoulder_rbot(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SHOULDER_FLARE); 
 
-    body_rad = body_rad(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SHOULDER_FLARE); 
+    body_rad = BODY_RAD;
     shoulder_len = shoulder_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE); 
     torso_len = torso_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE);
-    front_scale = front_scale(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE); 
-    back_scale = back_scale(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE, FRONT_BACK_RATIO);
+    front_scale = BODY_FRONT_SCALE;
+    back_scale = BODY_BACK_SCALE;
     
     chamber_rad = body_rad - BODY_TCK;
     chamber_front_scale = CHAMBER_BODY_RATIO*front_scale;
@@ -191,22 +191,22 @@ module body() {
                         difference() {
                             
                             translate([NECK_LEN +N_GAP + shoulder_len + torso_len -3*FUSE_SHIFT, 0, -FUSE_SHIFT])
-                                butt(0, back_scale, body_rad -RND_RAD, TOP_SCALE, BOTTOM_SCALE); 
+                                butt(0, back_scale, body_rad -TOP_RND_RAD, TOP_SCALE, BOTTOM_SCALE); 
                             
                             if (HEAD_STYLE != 1) { 
                                 translate([0, 0, -TUNER_BD_TCK -2*FIT_TOL])
                                     tail_pegs(is_cut = true);
                             }
                         }
-                        if (RND_RAD > 0) {
-                            scale([1,1,TOP_SCALE]) 
-                                sphere(r=RND_RAD, $fn=LORES);
+                        if (TOP_RND_RAD > 0) {
+                            scale([1, 1, TOP_SCALE]) 
+                                sphere(r=TOP_RND_RAD, $fn=LORES);
                         }
                     }
                 }
                 
                 // slice away any unwanted minkowki rounded parts
-                if (RND_RAD > 0) {
+                if (TOP_RND_RAD > 0) {
                     translate([0, -1000, -1000]) cube([SCALE_LEN -3*FUSE_SHIFT, 2000, 2000]);
                 }
             }
@@ -216,7 +216,7 @@ module body() {
                     minkowski() {
                         difference() {
                             translate([NECK_LEN +N_GAP + shoulder_len + torso_len -3*FUSE_SHIFT, 0, -V_GAP])
-                                butt(1, back_scale, body_rad -RND_RAD, TOP_SCALE, BOTTOM_SCALE); 
+                                butt(1, back_scale, body_rad -BOT_RND_RAD, TOP_SCALE, BOTTOM_SCALE); 
 
                             if (HEAD_STYLE != 1) { 
                                 translate([0, 0, TUNER_UPLIFT -TUNER_BD_TCK -FIT_TOL -V_GAP])
@@ -224,19 +224,19 @@ module body() {
                                 
                                 if (TUNER_STYLE < 3 || FORCE_TAIL_CAVITY) {
                                     translate([0, 0, -V_GAP])
-                                        tail_tuner_cavity(4*RND_RAD);
+                                        tail_tuner_cavity(4*BOT_RND_RAD);
                                 }
                             }
                         }
-                        if (RND_RAD > 0) {
-                            scale([1,1,BOTTOM_SCALE]) 
-                                sphere(r=RND_RAD, $fn=LORES);
+                        if (BOT_RND_RAD > 0) {
+                            scale([1, 1, BOTTOM_SCALE]) 
+                                sphere(r=BOT_RND_RAD, $fn=LORES);
                         }
                     }
                 }
                 
                 // slice away any unwanted minkowki rounded parts
-                if (RND_RAD > 0) {
+                if (BOT_RND_RAD > 0) {
                     translate([0, -1000, 0]) cube([2000, 2000, 2000]);
                     translate([0, -1000, -1000]) cube([SCALE_LEN -3*FUSE_SHIFT, 2000, 2000]);
                 }
