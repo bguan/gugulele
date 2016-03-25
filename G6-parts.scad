@@ -102,6 +102,15 @@ module dovetail(is_cut=false) {
     trapezoid(NECK_JOINT_WTH2 +2*cut_adj, NECK_JOINT_WTH1 +2*cut_adj, 
               NECK_JOINT_TCK +2*cut_adj, NECK_JOINT_TCK +2*cut_adj, 
               NECK_JOINT_LEN +2*cut_adj);
+
+	translate([0, 0, FUSE_SHIFT])
+	scale([1, 1, .2])
+	difference() {
+		rotate([0, 90, 0])
+		cylinder(r2=NECK_JOINT_WTH1/2 +cut_adj, r1=NECK_JOINT_WTH2/2 +cut_adj, h=NECK_JOINT_LEN +2*cut_adj);
+
+		translate([0, -200, 0]) cube([400, 400, 400]);
+	}
 }
 
 module body() {
@@ -168,8 +177,9 @@ module body() {
     difference() {
         union() {
             if (SHOW_NECK) {
-                neck(1, front_scale, NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE,
-                    TOP_SCALE, BOTTOM_SCALE);
+				translate([0, 0, -V_GAP])
+                    neck(1, front_scale, NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE,
+                        TOP_SCALE, BOTTOM_SCALE);
             }
             
             for(i=[0,1]) {
@@ -194,7 +204,7 @@ module body() {
                                 butt(0, back_scale, body_rad -TOP_RND_RAD, TOP_SCALE, BOTTOM_SCALE); 
                             
                             if (HEAD_STYLE != 1) { 
-                                translate([0, 0, -TUNER_BD_TCK -2*FIT_TOL])
+                                translate([N_GAP, 0, -TUNER_BD_TCK -2*FIT_TOL])
                                     tail_pegs(is_cut = true);
                             }
                         }
@@ -207,7 +217,8 @@ module body() {
                 
                 // slice away any unwanted minkowki rounded parts
                 if (TOP_RND_RAD > 0) {
-                    translate([0, -1000, -1000]) cube([SCALE_LEN -3*FUSE_SHIFT, 2000, 2000]);
+                    translate([N_GAP, -1000, -2000]) cube([2000, 2000, 2000]);
+                    translate([N_GAP, -1000, -1000]) cube([SCALE_LEN -3*FUSE_SHIFT, 2000, 2000]);
                 }
             }
 
@@ -218,14 +229,13 @@ module body() {
                             translate([NECK_LEN +N_GAP + shoulder_len + torso_len -3*FUSE_SHIFT, 0, -V_GAP])
                                 butt(1, back_scale, body_rad -BOT_RND_RAD, TOP_SCALE, BOTTOM_SCALE); 
 
-                            if (HEAD_STYLE != 1) { 
-                                translate([0, 0, TUNER_UPLIFT -TUNER_BD_TCK -FIT_TOL -V_GAP])
-                                    tail_pegs(is_cut = true);
-                                
+                            if (HEAD_STYLE != 1) union(){ 
                                 if (TUNER_STYLE < 3 || FORCE_TAIL_CAVITY) {
-                                    translate([0, 0, -V_GAP])
+                                    translate([N_GAP, 0, -V_GAP])
                                         tail_tuner_cavity(4*BOT_RND_RAD);
                                 }
+                                translate([N_GAP, 0, TUNER_UPLIFT -TUNER_BD_TCK +FIT_TOL -V_GAP])
+                                    tail_pegs(is_cut = true);
                             }
                         }
                         if (BOT_RND_RAD > 0) {
@@ -237,8 +247,8 @@ module body() {
                 
                 // slice away any unwanted minkowki rounded parts
                 if (BOT_RND_RAD > 0) {
-                    translate([0, -1000, 0]) cube([2000, 2000, 2000]);
-                    translate([0, -1000, -1000]) cube([SCALE_LEN -3*FUSE_SHIFT, 2000, 2000]);
+                    translate([N_GAP, -1000, -V_GAP]) cube([2000, 2000, 2000]);
+                    translate([N_GAP, -1000, -1000]) cube([SCALE_LEN -3*FUSE_SHIFT, 2000, 2000]);
                 }
             }
             
@@ -600,6 +610,13 @@ module fretboard(is_cut = false) {
     fretbd_extn_tck = fretbd_tl_tck + FRETBD_EXTN*tan(FRETBD_RISE);
     f0_rad = F0_RAD +cut_adj;
     f0_len = 4*fretbd_hd_wth;
+	front_scale = BODY_FRONT_SCALE;
+
+    shoulder_rtop = shoulder_rtop(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE);
+    shoulder_atop = shoulder_atop(NECK_SLOPE);
+    shoulder_abot = shoulder_abot(NECK_SLOPE, SHOULDER_FLARE);
+    shoulder_curve_R = shoulder_curve_R(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SHOULDER_FLARE); 
+    shoulder_rbot = shoulder_rbot(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SHOULDER_FLARE); 
 
     difference() {
         union() {
@@ -663,12 +680,13 @@ module fretboard(is_cut = false) {
         
         if (!is_cut && V_GAP > 0 && F_GAP > 0) {
             // use shoulder top to cut fretboard!
-            translate([-FIT_TOL, 0, FIT_TOL]) {
-                translate([NECK_LEN +N_GAP -FUSE_SHIFT, 0, 0])
-                    shoulder(0, front_scale, shoulder_len, torso_len,
-                        shoulder_curve_R, shoulder_rtop, shoulder_rbot,
-                        shoulder_atop, shoulder_abot,
-                        TOP_SCALE, BOTTOM_SCALE);
+            translate([NECK_LEN -FUSE_SHIFT -FIT_TOL, 0, FIT_TOL])
+			for(i=[0, 1]) {
+				translate([0, 0, i > 0? FUSE_SHIFT : 0])
+				shoulder(i, front_scale, shoulder_len, torso_len,
+					shoulder_curve_R, shoulder_rtop, shoulder_rbot,
+					shoulder_atop, shoulder_abot,
+					TOP_SCALE, BOTTOM_SCALE);
             }
         }
     }
@@ -934,7 +952,7 @@ module xbrace(body_rad, butt_len) {
     intersection() {
         union() {
             for (lr = [1, -1]) {
-                translate([N_GAP +1.05*SCALE_LEN, lr*.5*body_rad, SPINE_RAISE +2.75*rod_vrad])
+                translate([N_GAP +1.05*SCALE_LEN, lr*.5*body_rad, SPINE_RAISE +4*rod_vrad])
                 rotate([0, -CHAMBER_TILT, lr*45])
                 translate([-butt_len, -.5, 0])
                 scale([1, 1, rod_vrad/BRACE_WTH])
@@ -942,7 +960,7 @@ module xbrace(body_rad, butt_len) {
             }
         }
         
-        translate([0, 0, -FUSE_SHIFT])
+        translate([N_GAP, 0, -FUSE_SHIFT])
         gourd([0], NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE, 
             FRONT_BACK_RATIO, TOP_SCALE, BOTTOM_SCALE);
     }
@@ -962,13 +980,13 @@ module tbrace(body_rad, butt_len) {
                 round_rod(body_rad/3, BRACE_WTH);
         }
         
-        translate([0, 0, -FUSE_SHIFT])
+        translate([N_GAP, 0, -FUSE_SHIFT])
         difference() {
             gourd([0], NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE, 
                 FRONT_BACK_RATIO, TOP_SCALE, BOTTOM_SCALE);
             
             if (B_GAP > 0) {
-                translate([SCALE_LEN +N_GAP, 0, BRDG_SET]) 
+                translate([SCALE_LEN, 0, BRDG_SET]) 
                     bridge(is_cut = true);
             }
         }

@@ -368,7 +368,7 @@ module logo() {
             }
         }
         
-        translate([0, 0, .5  -C_GAP]) {
+        translate([N_GAP, 0, .5 -V_GAP -C_GAP]) {
             gourd([1], NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE, 
                 FRONT_BACK_RATIO, TOP_SCALE, BOTTOM_SCALE);
         }
