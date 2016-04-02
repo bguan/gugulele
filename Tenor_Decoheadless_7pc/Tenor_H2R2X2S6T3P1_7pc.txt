@@ -10,3 +10,4 @@ ECHO: "Oval holes total area (mm^2): 902.997"
 ECHO: "Head Length = 24.01"
 ECHO: "Max num of frets: ", 19
 ECHO: "spine_len = 542.36, or 21.3528 inches"
+

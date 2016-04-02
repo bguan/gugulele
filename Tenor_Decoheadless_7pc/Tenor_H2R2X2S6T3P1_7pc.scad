@@ -2,7 +2,7 @@ include <../G6.scad>;
 
 // Overriding Default Params
 HIRES = 180; 
-DEFRES = 60; 
+DEFRES = 90; 
 LORES = 20;
 SHOW_LOGO = true; 
 //SHOW_HEAD = false;
@@ -26,6 +26,7 @@ SHOW_LOGO = true;
 // High level params
 TOP_RND_RAD = 1;
 BOT_RND_RAD = .4;
+HD_RND_RAD = .5;
 MODEL = 3;
 TUNER_STYLE = 3;
 HEAD_STYLE = 2;
