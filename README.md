@@ -3,6 +3,7 @@ OpenSCAD scripts to generate parametric 3D models of gourd shaped ukuleles suita
 
  * http://www.thingiverse.com/thing:1007035
  * http://www.thingiverse.com/thing:1057746
+ * http://p3d.in/kLuhJ/xray+spin
 
 ## Usage
 1. include G6 into an openscad project
