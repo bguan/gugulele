@@ -479,15 +479,69 @@ module head(wth, stem, nslope) {
                         FRETBD_HD_TCK+.5*F0_RAD, FRETBD_HD_TCK+.5*F0_RAD, stem);
             }
         } else if (HEAD_STYLE==1) { // Headed w tuners
-            translate([FUSE_SHIFT -H_GAP, 0, -V_GAP]) 
-            rotate([ 0, 0, 180]) 
-            gourd([0, 1], stem, wth, nslope, HEAD_MIDLEN, HEAD_FLARE, 
-                HEAD_FRONT_BACK_RATIO, HEAD_TOP_SCALE, BOTTOM_SCALE);
+			minkowski() {
+				difference() {
+					translate([FUSE_SHIFT -H_GAP, 0, -V_GAP]) 
+					rotate([ 0, 0, 180]) 
+					gourd([0, 1], stem, wth -2*HD_RND_RAD, nslope, HEAD_MIDLEN, HEAD_FLARE, 
+						HEAD_FRONT_BACK_RATIO, HEAD_TOP_SCALE, BOTTOM_SCALE);
+
+					// slice top and bottom off at an angle
+					for (tbd = [ HEAD_SLICE[0], -clen +HEAD_SLICE[1] ]) {
+						translate([(tbd < 0 ? clen*tan(HEAD_ANGLE) :-stem ) -H_GAP +3, 
+								0, tbd-V_GAP])
+						rotate([0, -HEAD_ANGLE, 0]) 
+						translate([-clen, -clen/2, 0]) 
+							cube([clen,clen,clen]);
+					}
+					
+					// slice left and right off at an angle
+					for (i = [ 1, -1 ]) {
+						translate([-clen/2  -H_GAP, 
+								   i*(clen/2 +(MODEL<5?.4:.5)*NUT_HOLE_GAP*NUM_STRS), 
+									-V_GAP])
+						rotate([0, 0, i*HEAD_SIDE_CUT_ANGLE]) 
+						translate([-clen/2, -clen/2, -clen/2]) 
+							cube([clen,clen,clen]);
+					}
+
+					translate([-H_GAP, 0, -V_GAP]) 
+					rotate([0, -HEAD_ANGLE, 0]) 
+						pegs();
+				}
+
+				if (HD_RND_RAD > 0) 
+					scale([1, 1, BOTTOM_SCALE])
+						sphere(r=HD_RND_RAD, $fn=LORES);
+			}
         } else { // decorative head
-            translate([FUSE_SHIFT -H_GAP, 0, -V_GAP]) 
-            rotate([ 0, 0, 180]) 
-            gourd([0, 1], stem, wth, nslope, HEAD_MIDLEN, HEAD_FLARE, 
-                HEAD_FRONT_BACK_RATIO, HEAD_TOP_SCALE, BOTTOM_SCALE);
+			minkowski() {
+				difference() {
+					translate([FUSE_SHIFT -H_GAP, 0, -V_GAP]) 
+					rotate([ 0, 0, 180]) 
+					gourd([0, 1], stem, wth -2*HD_RND_RAD, nslope, HEAD_MIDLEN, HEAD_FLARE, 
+						HEAD_FRONT_BACK_RATIO, HEAD_TOP_SCALE, BOTTOM_SCALE);
+					
+					// cut groove at the top of headless stem
+					translate([ -.5*HEADLESS_TOP_GROOVE_RAD -H_GAP, clen/2,
+								HEADLESS_TOP_GROOVE_RAD -V_GAP +1]) 
+					scale(1, 1, 2)
+					rotate([90, 0, 0])
+						cylinder(r=HEADLESS_TOP_GROOVE_RAD, h=clen, $fn=HIRES);
+					
+					// cut groove at front of headless stem
+					translate([HEADLESS_FRONT_GROOVE_PLCMT[0] -H_GAP, 
+								clen/2, 
+								HEADLESS_FRONT_GROOVE_PLCMT[2] -V_GAP]) 
+					scale([.7, 1, HEAD_POKED ? 1 : .7 ])
+					rotate([90, 0, 0])
+						cylinder(r=HEADLESS_FRONT_GROOVE_RAD, h=clen, $fn=HIRES);
+            
+				}
+				if (HD_RND_RAD > 0) 
+					scale([1, 1, BOTTOM_SCALE])
+						sphere(r=HD_RND_RAD, $fn=LORES);
+			}
         }
         
         // Subtract parts from head
@@ -522,29 +576,10 @@ module head(wth, stem, nslope) {
             
         } 
         
-        if (HEAD_STYLE == 1 ) { // headed 
-            // slice top and bottom off at an angle
-            for (tbd = [ HEAD_SLICE[0], -clen +HEAD_SLICE[1] ]) {
-                translate([(tbd < 0 ? clen*tan(HEAD_ANGLE) :-stem ) -H_GAP +3, 
-                        0, tbd-V_GAP])
-                rotate([0, -HEAD_ANGLE, 0]) 
-                translate([-clen, -clen/2, 0]) 
-                    cube([clen,clen,clen]);
-            }
-            
-            // cut to level any sharp angle at fretboard joint
-            translate([-0.8*clen -H_GAP, -clen/2, 0 /*FRETBD_HD_TCK-.5*/]) 
-                cube([clen,clen,clen]);
-            
-            // slice left and right off at an angle
-            for (i = [ 1, -1 ]) {
-                translate([-clen/2  -H_GAP, 
-                           i*(clen/2 +(MODEL<5?.4:.5)*NUT_HOLE_GAP*NUM_STRS), 
-                            -V_GAP])
-                rotate([0, 0, i*HEAD_SIDE_CUT_ANGLE]) 
-                translate([-clen/2, -clen/2, -clen/2]) 
-                    cube([clen,clen,clen]);
-            }
+        if (HEAD_STYLE == 1 ) { 
+			// cut to level any sharp angle at fretboard joint
+			translate([-0.8*clen -H_GAP, -clen/2, 0 /*FRETBD_HD_TCK-.5*/]) 
+				cube([clen,clen,clen]);
         }
             
         if (HEAD_STYLE == 2) {
@@ -552,23 +587,8 @@ module head(wth, stem, nslope) {
             translate([-2*STR_HOLE_RAD -H_GAP, 0, FRETBD_HD_TCK +F0_RAD -V_GAP]) 
                 string_holes(-90 -HEADLESS_STRING_ANGLE, NUT_HOLE_GAP);
             
-            // cut groove at the top of headless stem
-            translate([ -.5*HEADLESS_TOP_GROOVE_RAD -H_GAP, clen/2,
-                        HEADLESS_TOP_GROOVE_RAD -V_GAP +1]) 
-            scale(1, 1, 2)
-            rotate([90, 0, 0])
-                cylinder(r=HEADLESS_TOP_GROOVE_RAD, h=clen, $fn=HIRES);
-            
-            // cut groove at front of headless stem
-            translate([HEADLESS_FRONT_GROOVE_PLCMT[0] -H_GAP, 
-                        clen/2, 
-                        HEADLESS_FRONT_GROOVE_PLCMT[2] -V_GAP]) 
-            scale([.7, 1, HEAD_POKED ? 1 : .7 ])
-            rotate([90, 0, 0])
-                cylinder(r=HEADLESS_FRONT_GROOVE_RAD, h=clen, $fn=HIRES);
-            
             // level joining end to fretboard to avoid sharp edges
-            translate([-.5*HEADLESS_TOP_GROOVE_RAD -H_GAP, -clen/2, -V_GAP+1]) 
+            translate([-.5*HEADLESS_TOP_GROOVE_RAD -H_GAP, -clen/2, -V_GAP+1+HD_RND_RAD]) 
             cube([clen,clen,clen]);
         }
         
@@ -961,8 +981,14 @@ module xbrace(body_rad, butt_len) {
         }
         
         translate([N_GAP, 0, -FUSE_SHIFT])
-        gourd([0], NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE, 
-            FRONT_BACK_RATIO, TOP_SCALE, BOTTOM_SCALE);
+		difference() {
+			gourd([0], NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE, 
+				FRONT_BACK_RATIO, TOP_SCALE, BOTTOM_SCALE);
+			// Flat butt cut
+			if (HEAD_STYLE==1) {
+				translate([BODY_LEN, -200, -200]) cube([400,400,400]);
+			}
+		}
     }
 }
 
@@ -970,12 +996,12 @@ module tbrace(body_rad, butt_len) {
     rod_vrad = .225*body_rad*TOP_SCALE;
     intersection() {
         union() {
-            translate([N_GAP +SCALE_LEN -.2*body_rad, 0, SPINE_RAISE +5.5*rod_vrad])
+            translate([N_GAP +SCALE_LEN -.2*body_rad, 0, 3.5*rod_vrad])
             rotate([0, 0, 90])
             scale([2, 1, rod_vrad/BRACE_WTH])
                 round_rod(2*body_rad, BRACE_WTH);
             
-            translate([N_GAP +SCALE_LEN, 0, SPINE_RAISE +5.5*rod_vrad])
+            translate([N_GAP +SCALE_LEN, 0, 3.5*rod_vrad])
             scale([2, 2, rod_vrad/BRACE_WTH])
                 round_rod(body_rad/3, BRACE_WTH);
         }
@@ -989,6 +1015,11 @@ module tbrace(body_rad, butt_len) {
                 translate([SCALE_LEN, 0, BRDG_SET]) 
                     bridge(is_cut = true);
             }
+			
+			// Flat butt cut
+			if (HEAD_STYLE==1) {
+				translate([BODY_LEN, -200, -200]) cube([400,400,400]);
+			}
         }
     }
 }

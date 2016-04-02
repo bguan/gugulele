@@ -23,14 +23,7 @@ module assemble() {
             body();
             
             if (SHOW_HEAD) {
-                difference() {
-                    head(NECK_HEAD_WTH, HEAD_STEM, 0);
-                    if (HEAD_STYLE==1) {
-                        translate([-H_GAP, 0, -V_GAP]) 
-                            rotate([0, -HEAD_ANGLE, 0]) 
-                                pegs();
-                    }
-                }
+                head(NECK_HEAD_WTH, HEAD_STEM, 0);
             }
     
             if (SHOW_FRETBD) {

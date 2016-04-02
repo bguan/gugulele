@@ -9,7 +9,7 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
     itck = is_cut ? .75*bot_scale*brad : 1.4;
     rndrad = .65;
     orad = .65;
-    side_scale = .95;
+    side_scale = [.95, .95, .95, .95, .95, .99][MODEL];
     
     rotate([0, BACK_COVER_ANGLE, 0])
     translate([0, 0, -BACK_COVER_PLCMT]) {
@@ -140,8 +140,8 @@ module oval_holes(body_rad, front_scale, xlen, ylen) {
 }
 
 module peg(anchor_dx = 0, anchor_dy = 0, is_cut = true) {
-    top_rnd_rad = TOP_RND_RAD +BOT_RND_RAD >0 ? 2*TOP_RND_RAD : 0;
-    bot_rnd_rad = TOP_RND_RAD +BOT_RND_RAD >0 ? 2*BOT_RND_RAD : 0;
+    top_rnd_rad = HEAD_STYLE == 1 ? 2*HD_RND_RAD : TOP_RND_RAD +BOT_RND_RAD >0 ? 2*TOP_RND_RAD : 0;
+    bot_rnd_rad = HEAD_STYLE == 1 ? 2*HD_RND_RAD : TOP_RND_RAD +BOT_RND_RAD >0 ? 2*BOT_RND_RAD : 0;
     cut_adj = is_cut ? FIT_TOL : 0;    
     
     difference() {
@@ -322,24 +322,24 @@ module tail_pegs(is_cut = true) {
 }
 
 module tail_tuner_cavity() {  
-    rndrad = 4*RND_RAD;
+    rndrad = 4*BOT_RND_RAD;
+	butt_len = butt_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, 
+							SHOULDER_FLARE, FRONT_BACK_RATIO);
+	clen = butt_len -TUNER_CAVITY_DEP; // 90 arbitarty side of cutting cube  
+	back_scale = BODY_BACK_SCALE;
+	body_rad = BODY_RAD;
+	wth_stretch = 2;
+	w2 = wth_stretch*TUNER_CAVITY_WTH;
+	rcut = w2-TUNER_CAVITY_WTH;
     if (FORCE_TAIL_CAVITY || len(search(TUNER_STYLE, [3,4])) == 0)         
     minkowski() {
         union() {
-            butt_len = butt_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, 
-                                    SHOULDER_FLARE, FRONT_BACK_RATIO);
-            clen = butt_len -TUNER_CAVITY_DEP; // 90 arbitarty side of cutting cube  
-            back_scale = BODY_BACK_SCALE;
-            body_rad = BODY_RAD;
-            wth_stretch = 2;
-            w2 = wth_stretch*TUNER_CAVITY_WTH;
-            rcut = w2-TUNER_CAVITY_WTH;
             difference() {
-                translate( [SCALE_LEN +N_GAP +TUNER_CAVITY_DEP, 0, 
-                            -2*clen -TUNER_BD_TCK -rndrad -V_GAP +TUNER_UPLIFT])
+                translate( [SCALE_LEN +TUNER_CAVITY_DEP, 0, 
+                            -2*clen -TUNER_BD_TCK -rndrad +2*TUNER_UPLIFT +FIT_TOL])
                     trapezoid(TUNER_CAVITY_WTH, w2, clen*2, clen*2, clen);
                 
-                translate( [SCALE_LEN +N_GAP, 0, -.5*TUNER_BD_TCK -rndrad -V_GAP]) 
+                translate( [SCALE_LEN , 0, -.5*TUNER_BD_TCK -rndrad]) 
                 scale([TUNER_CAVITY_DOME_SCALE, 
                         TUNER_CAVITY_DOME_SCALE *CAVITY_DOME_SIDE_STRETCH, 
                         TUNER_CAVITY_DOME_SCALE *CAVITY_DOME_VERT_STRETCH]) 
@@ -382,7 +382,7 @@ module round_spine(spine_len, spine_rad) {
 
 module rect_spine(spine_len, spine_ht, spine_wth, tented = false, beveled = true) {
     if (!tented) {
-        translate([SPINE_PRE_LEN, -spine_wth/2, -spine_ht/2])
+        translate([0, -spine_wth/2, -spine_ht/2])
             cube([spine_len, spine_wth, spine_ht]);
     } else {
         hull() {
@@ -410,38 +410,38 @@ module place_spine(is_cut = false) {
     cut_adj = (is_cut ? FIT_TOL :0);
     dist = (H_GAP + V_GAP + F_GAP + N_GAP > 0 && USE_SCREWS ? SPINE_GAP/2 : 0);
     for (lr = USE_SCREWS ? [ 1, -1 ] : [0] ) {
-        if (V_GAP + F_GAP <= 0) {
-            translate([H_GAP > 0 ? 0 : SPINE_STYLE < 3 ? -1.5*HEAD_MIDLEN : 0, lr*dist, SPINE_RAISE])
-            round_spine(SPINE_LEN +(H_GAP+N_GAP > 0 ? 5+H_GAP+N_GAP : 1.5*HEAD_MIDLEN) +2*cut_adj, 
+        if (!RECT_SPINE) {
+            translate([SPINE_PRE_LEN -H_GAP, lr*dist, SPINE_RAISE])
+            round_spine(SPINE_LEN + H_GAP+N_GAP +2*cut_adj, 
                 SPINE_RAD +2*cut_adj);
         } else {
             if (F_GAP > 0) {
-                translate([SPINE_PRE_LEN, lr*dist, SPINE_RAISE +F_GAP]) 
+                translate([SPINE_PRE_LEN -H_GAP, lr*dist, SPINE_RAISE +F_GAP]) 
                 rotate([0, SPINE_STYLE ==3 ? SPINE_DIP :0, lr*SPINE_FAN]) 
-                rect_spine(SPINE_LEN +(is_cut ? N_GAP : 0) +2*cut_adj, 
+                rect_spine(SPINE_LEN + N_GAP+H_GAP +2*cut_adj, 
                         SPINE_HT +2*cut_adj, 
                         SPINE_WTH +2*cut_adj,
                         tented=SPINE_TENTED);
             }
             
             if (is_cut && N_GAP > 0) {
-                translate([SPINE_PRE_LEN, lr*dist, SPINE_RAISE -V_GAP]) 
+                translate([SPINE_PRE_LEN -H_GAP, lr*dist, SPINE_RAISE +FUSE_SHIFT -V_GAP]) 
                 rotate([0, SPINE_STYLE ==3 ? SPINE_DIP :0, lr*SPINE_FAN]) 
-                rect_spine(NECK_LEN +cut_adj, 
+                rect_spine(NECK_LEN +H_GAP+N_GAP +cut_adj, 
                         SPINE_HT +2*cut_adj, 
                         SPINE_WTH +2*cut_adj,
                         tented=SPINE_TENTED);
                 
-                translate([SPINE_PRE_LEN +N_GAP, lr*dist, SPINE_RAISE -V_GAP]) 
+                translate([SPINE_PRE_LEN -H_GAP +N_GAP, lr*dist, SPINE_RAISE +FUSE_SHIFT -V_GAP]) 
                 rotate([0, SPINE_STYLE ==3 ? SPINE_DIP :0, lr*SPINE_FAN]) 
-                rect_spine(SPINE_LEN +cut_adj, 
+                rect_spine(SPINE_LEN +H_GAP+cut_adj, 
                         SPINE_HT +2*cut_adj, 
                         SPINE_WTH +2*cut_adj,
                         tented=SPINE_TENTED);
             } else {
-                translate([SPINE_PRE_LEN, lr*dist, SPINE_RAISE -V_GAP]) 
+                translate([SPINE_PRE_LEN -H_GAP, lr*dist, SPINE_RAISE +FUSE_SHIFT -V_GAP]) 
                 rotate([0, SPINE_STYLE ==3 ? SPINE_DIP :0, lr*SPINE_FAN]) 
-                rect_spine(SPINE_LEN +(is_cut ? N_GAP : 0) +cut_adj, 
+                rect_spine(SPINE_LEN + N_GAP+H_GAP +cut_adj, 
                         SPINE_HT +2*cut_adj, 
                         SPINE_WTH +2*cut_adj,
                         tented=SPINE_TENTED);
@@ -450,9 +450,9 @@ module place_spine(is_cut = false) {
             if (is_cut && SPINE_STYLE == 3) {
                 // cut groove above actual spine in neck
                 difference() {
-                    translate([SPINE_PRE_LEN +N_GAP, lr*dist, SPINE_RAISE +2*SPINE_HT-V_GAP]) 
+                    translate([SPINE_PRE_LEN -H_GAP +N_GAP, lr*dist, SPINE_RAISE +2*SPINE_HT-V_GAP]) 
                     rotate([0, SPINE_DIP, lr*SPINE_FAN]) 
-                    rect_spine(.8*SPINE_LEN +cut_adj, 
+                    rect_spine(.8*SPINE_LEN +cut_adj +H_GAP +N_GAP, 
                             4*SPINE_HT+2*cut_adj, 
                             SPINE_WTH +2*cut_adj,
                             tented=SPINE_TENTED, beveled=false);
@@ -519,8 +519,8 @@ module place_pickup(is_cut = true) {
         pickup(is_cut = true);
     } else if (PICKUP_STYLE == 1) {
         bot_rad = (HEAD_STYLE == 1 ? 1 : TUNER_CAVITY_DOME_SCALE) *butt_len;
-        xplcmt = (HEAD_STYLE == 1 ? (butt_len -BUTT_CHOP)*cos(ENDPIN_DIP): 
-                                    bot_rad -ENDPIN_DEP -5);
+        xplcmt = (HEAD_STYLE == 1 ? (butt_len -.5*ENDPIN_DEP)*cos(.85*ENDPIN_DIP): 
+                                    bot_rad -ENDPIN_DEP -[-1, -1, 5, 5, 5, -8][MODEL]);
         translate([SCALE_LEN +N_GAP +xplcmt -ENDPIN_DEP,
                 0, -ENDPIN_PLCMT*bot_rad -V_GAP]) 
         rotate([0, ENDPIN_DIP, 0])
