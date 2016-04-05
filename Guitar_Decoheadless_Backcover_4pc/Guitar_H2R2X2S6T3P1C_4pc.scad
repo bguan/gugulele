@@ -1,9 +1,9 @@
 include <../G6.scad>;
 
 // Overriding Default Params
-HIRES = 180; 
-DEFRES = 60; 
-LORES = 20;
+HIRES = 144; 
+DEFRES = 36; 
+LORES = 12;
 SHOW_LOGO = true; 
 //SHOW_HEAD = false;
 //SHOW_NECK = false;
@@ -28,7 +28,8 @@ TOP_RND_RAD = 1;
 BOT_RND_RAD = .4;
 HD_RND_RAD = .5;
 MODEL = 5;
-TUNER_STYLE = 2;
+TUNER_STYLE = 3;
+FORCE_TAIL_CAVITY = true;
 HEAD_STYLE = 2;
 F_GAP = 90;
 B_GAP = 90; 

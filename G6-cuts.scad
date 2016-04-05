@@ -520,7 +520,7 @@ module place_pickup(is_cut = true) {
     } else if (PICKUP_STYLE == 1) {
         bot_rad = (HEAD_STYLE == 1 ? 1 : TUNER_CAVITY_DOME_SCALE) *butt_len;
         xplcmt = (HEAD_STYLE == 1 ? (butt_len -.5*ENDPIN_DEP)*cos(.85*ENDPIN_DIP): 
-                                    bot_rad -ENDPIN_DEP -[-1, -1, 5, 5, 5, -8][MODEL]);
+                                    bot_rad -ENDPIN_DEP -[-1, -2.5, 5, 5, 5, -9][MODEL]);
         translate([SCALE_LEN +N_GAP +xplcmt -ENDPIN_DEP,
                 0, -ENDPIN_PLCMT*bot_rad -V_GAP]) 
         rotate([0, ENDPIN_DIP, 0])

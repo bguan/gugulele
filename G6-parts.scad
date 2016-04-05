@@ -9,12 +9,12 @@ module neck(layer, front_scale, nlen, nwth, nslope, top_scale, bot_scale) {
     ntw = neck_tl_wth + FIT_TOL*2*nslope;
     planes = [-neck_tl_wth-1, 0];
     scales = [top_scale, bot_scale];
-    scale([front_scale, 1, scales[layer] ]) difference() {
-        translate([prelen, 0, 0]) rotate([0, -90, 0])
-            cylinder(r2=nwth/2, r1=ntw/2, h=prelen, $fn=HIRES);
-        translate([-1, -ntw/2 -1, planes[layer]]) 
-            cube([prelen+2, ntw+2, ntw+1]);
-    }        
+	scale([front_scale, 1, scales[layer] ]) difference() {
+		translate([prelen, 0, 0]) rotate([0, -90, 0])
+			cylinder(r2=nwth/2, r1=ntw/2, h=prelen, $fn=HIRES);
+		translate([-1, -ntw/2 -1, planes[layer]]) 
+			cube([prelen+2, ntw+2, ntw+1]);
+	}        
 }
 
 // shoulder by layer, 0 is top, 1 is bottom
@@ -104,7 +104,7 @@ module dovetail(is_cut=false) {
               NECK_JOINT_LEN +2*cut_adj);
 
 	translate([0, 0, FUSE_SHIFT])
-	scale([1, 1, .2])
+	scale([1, 1, .25])
 	difference() {
 		rotate([0, 90, 0])
 		cylinder(r2=NECK_JOINT_WTH1/2 +cut_adj, r1=NECK_JOINT_WTH2/2 +cut_adj, h=NECK_JOINT_LEN +2*cut_adj);
@@ -398,12 +398,15 @@ module body() {
             }   
         
         // screw head to neck 
-        if (SHOW_NECK && USE_SCREWS && H_GAP > 0) {    
-            for(ud = [1, -1]) {
-                translate([-HEAD_SCREW_PREDEP, ud*NUT_HOLE_GAP, 
-                    -HEAD_SCREW_PLCMT -V_GAP]) 
-                rotate([0, -90, 0]) 
-                screw(HEAD_SCREW_MDL, thread=SCREW_THREAD);
+        if ((SHOW_NECK || SHOW_HEAD) && USE_SCREWS && H_GAP > 0) {    
+            for(lr = SPINE_STYLE > 0 && SPINE_GAP > 0 ? [0] : [1, -1]) {
+				translate([-HEAD_SCREW_PREDEP, 
+						lr*NUT_HOLE_GAP,
+						-HEAD_SCREW_PLCMT -V_GAP]) 
+				rotate([0, -90, 0]) {
+					cylinder(r=HEAD_SCREW_HEAD_RAD +FIT_TOL, h=40);
+					screw(HEAD_SCREW_MDL, thread=SCREW_THREAD);
+				}
             }
         }
         
@@ -596,23 +599,22 @@ module head(wth, stem, nslope) {
         if (F_GAP +V_GAP +H_GAP > 0) {
             translate([-H_GAP, 0, -V_GAP]) fretboard(is_cut = true);
         }
-        
-        // cut screw holes for head to neck
-        if (USE_SCREWS && H_GAP > 0) {    
-            for(ud = [1, -1]) {
-                translate([-HEAD_SCREW_PREDEP -H_GAP, ud*NUT_HOLE_GAP,
-                        -HEAD_SCREW_PLCMT -V_GAP]) 
-                rotate([0, -90, 0]) {
-                    cylinder(r=HEAD_SCREW_HEAD_RAD +FIT_TOL, h=clen);
-                    screw(HEAD_SCREW_MDL, thread=SCREW_THREAD);
-                }
-            }
-            
+
+        if (SHOW_NECK && USE_SCREWS && H_GAP > 0) {    
+            for(lr = SPINE_STYLE > 0 && SPINE_GAP > 0 ? [0] : [1, -1]) {
+				translate([-HEAD_SCREW_PREDEP -H_GAP, 
+						lr*NUT_HOLE_GAP,
+						-HEAD_SCREW_PLCMT -V_GAP]) 
+				rotate([0, -90, 0]) {
+					cylinder(r=HEAD_SCREW_HEAD_RAD +FIT_TOL, h=40);
+					screw(HEAD_SCREW_MDL, thread=SCREW_THREAD);
+				}
+			}
             // level joining end to fretboard to avoid sharp edges
             translate([-.5*HEADLESS_TOP_GROOVE_RAD -H_GAP, 
                     -clen/2, FRETBD_HD_TCK-0.5]) 
                 cube([clen,clen,clen]);
-        }
+		}
     }
 }
 
