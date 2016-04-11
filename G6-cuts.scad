@@ -83,7 +83,7 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
             if (!is_cut && USE_SCREWS) {
                 for(fb =[1, -1]) {
                     translate([fb*(-(fb >0 ?front_scale :back_scale)*brad +BACK_SCREW_HEAD_RAD +.5), 
-                            0, -1.5])
+                            0, -2])
                     rotate([180, 0, 0])
                     union() {
                         cylinder(r=BACK_SCREW_HEAD_RAD, h=10);
@@ -94,7 +94,7 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
                 for(lr =[-1, 1]) {
                     translate([0, 
                         lr*(side_scale*brad -BACK_SCREW_HEAD_RAD -.1), 
-                        -1.5])
+                        -2])
                     rotate([180, 0, 0])
                     union() {
                         cylinder(r=BACK_SCREW_HEAD_RAD, h=10);
@@ -107,7 +107,7 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
         if (is_cut && USE_SCREWS) {
             for(fb =[1, -1]) {
                 translate([fb*(-(fb >0 ?front_scale :back_scale)*brad +BACK_SCREW_HEAD_RAD +.5), 
-                        0, -1.5])
+                        0, -2])
                 rotate([180, 0, 0])
                 union() {
                     cylinder(r=BACK_SCREW_HEAD_RAD, h=10);
@@ -118,7 +118,7 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
             for(lr =[-1, 1]) {
                 translate([0, 
                     lr*(side_scale*brad -BACK_SCREW_HEAD_RAD -.1), 
-                    -1.5])
+                    -2])
                 rotate([180, 0, 0])
                 union() {
                     cylinder(r=BACK_SCREW_HEAD_RAD, h=10);
