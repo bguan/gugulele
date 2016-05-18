@@ -52,6 +52,7 @@ module assemble() {
             }
             
             if (SHOW_BRACE ) {
+				translate([0, 0, -FIT_TOL])
                 if (BRACE_STYLE == 1) {
                     xbrace(body_rad, butt_len);
                 } else if (BRACE_STYLE == 2) {
@@ -90,10 +91,6 @@ module assemble() {
         if (SHOW_CROSS_SECTION) {
             translate([SCALE_LEN, -2*body_rad, -V_GAP -2*body_rad -C_GAP])
                 cube([2*SCALE_LEN, 4*body_rad, 4*body_rad +V_GAP +F_GAP +C_GAP]);
-        }
-        
-        if (SHOW_BOTTOM && PICKUP_STYLE > 0) {
-            place_pickup(is_cut = true);
         }
         
         if (SHOW_FRETBD && SHOW_FRETDECO) {

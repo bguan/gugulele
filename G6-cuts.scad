@@ -5,11 +5,13 @@
 module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
     brad = BACK_COVER_RATIO * body_rad + (is_cut ? FIT_TOL : 0);
     irad = brad -2.2*BACK_SCREW_HEAD_RAD + (is_cut ? FIT_TOL : 0);
-    tck = is_cut ? 1.4 : bot_scale*brad;
-    itck = is_cut ? .75*bot_scale*brad : 1.4;
+    //tck = is_cut ? 1.4 : bot_scale*brad;
+    //itck = is_cut ? .75*bot_scale*brad : 1.4;
+    tck = is_cut ? 1 : bot_scale*brad;
+    itck = is_cut ? .75*bot_scale*brad : 1;
     rndrad = .65;
     orad = .65;
-    side_scale = [.95, .95, .95, .95, .95, .99][MODEL];
+    side_scale = [.88, .88, .88, .88, .88, .95][MODEL];
     
     rotate([0, BACK_COVER_ANGLE, 0])
     translate([0, 0, -BACK_COVER_PLCMT]) {
@@ -82,7 +84,7 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
             
             if (!is_cut && USE_SCREWS) {
                 for(fb =[1, -1]) {
-                    translate([fb*(-(fb >0 ?front_scale :back_scale)*brad +BACK_SCREW_HEAD_RAD +.5), 
+                    translate([fb*(-(fb >0 ?front_scale :back_scale)*brad +3*BACK_SCREW_HEAD_RAD), 
                             0, -2])
                     rotate([180, 0, 0])
                     union() {
@@ -92,8 +94,8 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
                 }
                 
                 for(lr =[-1, 1]) {
-                    translate([0, 
-                        lr*(side_scale*brad -BACK_SCREW_HEAD_RAD -.1), 
+                    translate([-.1*BODY_RAD, 
+                        lr*(side_scale*brad -BACK_SCREW_HEAD_RAD -.2), 
                         -2])
                     rotate([180, 0, 0])
                     union() {
@@ -116,8 +118,8 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
             }
             
             for(lr =[-1, 1]) {
-                translate([0, 
-                    lr*(side_scale*brad -BACK_SCREW_HEAD_RAD -.1), 
+                translate([-.1*BODY_RAD, 
+                    lr*(side_scale*brad -BACK_SCREW_HEAD_RAD -.2), 
                     -2])
                 rotate([180, 0, 0])
                 union() {
@@ -131,7 +133,7 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
 
                 
 module oval_holes(body_rad, front_scale, xlen, ylen) {
-    for (lr = [-1, 1]) {
+    for (lr = (SNDHOLE_STYLE >= 8 ? [-1] :[-1, 1])) {
         translate([0, lr*body_rad*.6, 0])
         rotate([0, 0, lr*24])
         scale([xlen/ylen, 1, 1])
@@ -139,50 +141,61 @@ module oval_holes(body_rad, front_scale, xlen, ylen) {
     }
 }
 
+module peg_anchor(anchor_dx = 0, anchor_dy = 0, is_cut = true) {
+    cut_adj = is_cut ? FIT_TOL : 0;    
+
+	// anchor pins
+	if (ANCHORPIN_RAD > 0) {
+		translate([anchor_dx, anchor_dy, -2*TUNER_BD_TCK]) 
+			cylinder(h=TUNER_BD_TCK+ANCHORPIN_DEP+cut_adj, 
+				r=ANCHORPIN_RAD +cut_adj);
+	}
+}
+    
 module peg(anchor_dx = 0, anchor_dy = 0, is_cut = true) {
     top_rnd_rad = HEAD_STYLE == 1 ? 2*HD_RND_RAD : TOP_RND_RAD +BOT_RND_RAD >0 ? 2*TOP_RND_RAD : 0;
     bot_rnd_rad = HEAD_STYLE == 1 ? 2*HD_RND_RAD : TOP_RND_RAD +BOT_RND_RAD >0 ? 2*BOT_RND_RAD : 0;
     cut_adj = is_cut ? FIT_TOL : 0;    
+	peg_res = 2*DEFRES;
     
     difference() {
         union() {
             // top counter hole
             minkowski() {
 				translate([0, 0, top_rnd_rad -FIT_TOL])
-            		cylinder(h=2*TUNER_BD_TCK, r=TUNER_TOP_RAD +(top_rnd_rad > 0 ? 0 :cut_adj));
+            		cylinder(h=2*TUNER_BD_TCK, 
+							r=TUNER_TOP_RAD +(top_rnd_rad > 0 ? 0 :cut_adj),
+							$fn=peg_res);
 				if (top_rnd_rad > 0) sphere(r=top_rnd_rad, $fn=LORES);
 			}
             
             // main shaft
-            translate([0,0,-TUNER_BD_TCK +FUSE_SHIFT]) 
-            cylinder(h=TUNER_BD_TCK, r=TUNER_HOLE_RAD +cut_adj);
+            translate([0,0,-TUNER_BD_TCK -1 +FUSE_SHIFT]) 
+            cylinder(h=TUNER_BD_TCK +1, r=TUNER_HOLE_RAD +cut_adj, $fn=peg_res);
             
-            if (HEAD_STYLE == 1 || len(search(TUNER_STYLE, [0, 1, 2])) > 0 || FORCE_TAIL_CAVITY) {
+            if (HEAD_STYLE == 1 || len(search(TUNER_STYLE, [0, 1])) > 0 || FORCE_TAIL_CAVITY) {
                 // bottom counter hole
                 translate([0,0,-TUNER_BD_TCK -TUNER_BOT_LEN +2*FUSE_SHIFT]) 
-                    cylinder(h=TUNER_BOT_LEN, r=TUNER_BOT_RAD +cut_adj);
+                    cylinder(h=TUNER_BOT_LEN, r=TUNER_BOT_RAD +cut_adj, $fn=peg_res);
                 
                 // turning button
                 translate([0,0,-3*TUNER_BD_TCK -TUNER_BOT_LEN +3*FUSE_SHIFT]) 
-                    cylinder(h=2*TUNER_BD_TCK, r=TUNER_BTN_RAD +cut_adj);
+                    cylinder(h=2*TUNER_BD_TCK, r=TUNER_BTN_RAD +cut_adj, $fn=peg_res);
             } else {
+                // bottom counter hole
 				minkowski() {
-					translate([0,0,-TUNER_BD_TCK -TUNER_BOT_LEN +4*FUSE_SHIFT])
+					translate([0,0,-TUNER_BD_TCK -TUNER_BOT_LEN +2*FUSE_SHIFT])
                     	cylinder(r2=TUNER_BOT_RAD +(bot_rnd_rad > 0 ? 0 : cut_adj) , 
 								r1=TUNER_BTN_RAD +(bot_rnd_rad > 0 ? 0 : cut_adj), 
-								h=TUNER_BOT_LEN -bot_rnd_rad);
+								h=TUNER_BOT_LEN -bot_rnd_rad, $fn=peg_res);
 					if (bot_rnd_rad > 0) sphere(r=bot_rnd_rad, $fn=LORES);
 				}
                 
+                // turning button
                 translate([0,0,-4*TUNER_BD_TCK -TUNER_BOT_LEN +5*FUSE_SHIFT]) 
-                    cylinder(h=3*TUNER_BD_TCK, r=TUNER_BTN_RAD +(bot_rnd_rad > 0 ? bot_rnd_rad :cut_adj));
-            }
-            
-            // anchor pins
-            if (ANCHORPIN_RAD > 0) {
-                translate([anchor_dx, anchor_dy, -2*TUNER_BD_TCK]) 
-                    cylinder(h=TUNER_BD_TCK+ANCHORPIN_DEP+cut_adj, 
-                        r=ANCHORPIN_RAD +cut_adj);
+                    cylinder(h=3*TUNER_BD_TCK, 
+							r=TUNER_BTN_RAD +(bot_rnd_rad > 0 ? bot_rnd_rad :cut_adj), 
+							$fn=peg_res);
             }
         }
         if (!is_cut) {
@@ -198,23 +211,23 @@ module pegs(is_cut = true) {
     peg_angle = HEAD_SIDE_CUT_ANGLE;
     pegswth = NUT_HOLE_GAP*(NUM_STRS-1);
     cut_adj = is_cut ? FIT_TOL : 0;
-    drop = (-HEAD_SLICE[0]-HEAD_SLICE[1]) + (-PEGS_SHIFT+HEAD_STEM)*sin(HEAD_ANGLE);
+    drop = (HEAD_SLICE[0] -HEAD_SLICE[1]) +
+			(-PEGS_SHIFT+HEAD_STEM)*sin(HEAD_ANGLE);
     dx = cos(peg_angle)*TUNER_GAP;
-    dy = sin(peg_angle)*TUNER_GAP;
-    xshift = ((NUM_STRS/2)-1)*dx;
+    dy = .5*sin(peg_angle)*TUNER_GAP;
+    xshift = ceil(NUM_STRS/2)*dx;
     zshift = (HEAD_SLICE[0] - HEAD_SLICE[1]);
     translate([PEGS_SHIFT, 0, zshift +TUNER_UPLIFT])
-    for (i = [0 : (NUM_STRS/2)-1]) {
+    for (i = [0 : ceil(NUM_STRS/2) -1]) {
         anchor_dx = ANCHORPIN_OFFSET*cos(ANCHORPIN_ANGLE);
         anchor_dy = ANCHORPIN_OFFSET*sin(ANCHORPIN_ANGLE);
-        translate([i*dx -xshift, i*dy +i*HEAD_TUNER_WIDEN +PEGS_DIVIDE*TUNER_GAP, 
-                    -drop]) 
+		peg_Y = i==0 && NUM_STRS%2>0 ? 0 : i*dy +i*HEAD_TUNER_WIDEN +PEGS_DIVIDE*TUNER_GAP; 
+		peg_X = (i==0 && NUM_STRS%2>0 ?.3: i)*dx; 
+        translate([peg_X -xshift , peg_Y, -drop]) 
             peg(anchor_dx, -anchor_dy, is_cut);
         
-        if (is_cut) { // only render half the real pegs
-            translate([i*dx -xshift, 
-                    -1*(i*dy +i*HEAD_TUNER_WIDEN +PEGS_DIVIDE*TUNER_GAP), 
-                    -drop]) 
+        if (is_cut && peg_Y != 0) { // only render half the real pegs
+            translate([peg_X -xshift, -peg_Y, -drop]) 
                 peg(anchor_dx, anchor_dy, is_cut);
         }
     }
@@ -250,26 +263,27 @@ module sound_port(rad) {
 }
 
 module string_holes(deg, gap, str_hole_rad = STR_HOLE_RAD) {
+	str_res = DEFRES/2;
     rotate(deg,[0,1,0]) {
         for (i = [0:NUM_STRS-1]) {
             translate([0,(-(NUM_STRS/2 - 0.5) +i)*gap,0]) {
-                cylinder(h=4*gap, r=str_hole_rad);
+                cylinder(h=4*gap, r=str_hole_rad, $fn=str_res);
             }
         }
     }
 }
 
 module thru_holes() {
-    thru_hole_plcmt = BRDG_WTH -2*BRDG_PINHOLE_RAD -1 -.5*MODEL; 
+    thru_hole_plcmt = BRDG_WTH -5 -.5*MODEL; 
     thru_hole_gap = (SCALE_LEN + thru_hole_plcmt)*NECK_SLOPE*2/
         NUM_STRS +NUT_HOLE_GAP;
         
     // thru holes
     translate([thru_hole_plcmt, 0, -BRDG_TCK]) 
-    scale([1.5,1,1])
-    string_holes(0, thru_hole_gap);
+    scale([3,1,1])
+    string_holes(0, thru_hole_gap, .5);
     
-    translate([thru_hole_plcmt +2*STR_HOLE_RAD, 0, -BRDG_TCK]) 
+    translate([thru_hole_plcmt +1.5, 0, -BRDG_TCK]) 
         string_holes(0, thru_hole_gap, BRDG_PINHOLE_RAD);
 }
 
@@ -295,8 +309,32 @@ module fhole(shoulder_len, torso_len, body_rad, hook_wth, hook_len) {
 }
 
 
-
 module tail_pegs(is_cut = true) {
+    back_scale = BODY_BACK_SCALE;
+    // use geometry to factor distorted distance between tuners
+    gap = sqrt(2*pow(back_scale,2)*pow(TUNER_GAP,2)/(pow(back_scale,2)+1)); 
+    tuner_fanout = -180*gap/(PI*TUNER_FANOUT_RAD); 
+    mid_i = NUM_STRS/2 -0.5;
+    center_len = SCALE_LEN; 
+    for (i = [0:NUM_STRS/2 - (NUM_STRS+1)%2]) { 
+        fanout = tuner_fanout * (i - mid_i);
+        translate([ center_len +TUNER_FANOUT_RAD*cos(fanout),  
+                    TUNER_FANOUT_RAD*sin(fanout)/back_scale, 
+                    TUNER_BD_TCK +TUNER_UPLIFT]) 
+            peg(is_cut);
+        
+		// skip when rending pegs instead of cutting peg holes, so only half set of pegs shows
+        if (is_cut) {
+            translate([ center_len +TUNER_FANOUT_RAD*cos(fanout),  
+                        -TUNER_FANOUT_RAD*sin(fanout)/back_scale, 
+                        TUNER_BD_TCK +TUNER_UPLIFT]) 
+                peg(is_cut);
+        }
+    }
+}
+
+
+module tail_peg_anchors(is_cut = true) {
     back_scale = BODY_BACK_SCALE;
     // use geometry to factor distorted distance between tuners
     gap = sqrt(2*pow(back_scale,2)*pow(TUNER_GAP,2)/(pow(back_scale,2)+1)); 
@@ -310,13 +348,13 @@ module tail_pegs(is_cut = true) {
         translate([ center_len +TUNER_FANOUT_RAD*cos(fanout),  
                     TUNER_FANOUT_RAD*sin(fanout)/back_scale, 
                     TUNER_BD_TCK +TUNER_UPLIFT]) 
-            peg(anchor_dx, -anchor_dy, is_cut);
+            peg_anchor(anchor_dx, -anchor_dy, is_cut);
         
         if (is_cut) {
             translate([ center_len +TUNER_FANOUT_RAD*cos(fanout),  
                         -TUNER_FANOUT_RAD*sin(fanout)/back_scale, 
                         TUNER_BD_TCK +TUNER_UPLIFT]) 
-                peg(anchor_dx, anchor_dy, is_cut);
+                peg_anchor(anchor_dx, anchor_dy, is_cut);
         }
     }
 }
@@ -331,7 +369,7 @@ module tail_tuner_cavity() {
 	wth_stretch = 2;
 	w2 = wth_stretch*TUNER_CAVITY_WTH;
 	rcut = w2-TUNER_CAVITY_WTH;
-    if (FORCE_TAIL_CAVITY || len(search(TUNER_STYLE, [3,4])) == 0)         
+    if (FORCE_TAIL_CAVITY || len(search(TUNER_STYLE, [2,3,4])) == 0)         
     minkowski() {
         union() {
             difference() {
@@ -464,67 +502,51 @@ module place_spine(is_cut = false) {
     }
 }
 
-module pickup(is_cut = true) {
+module pickup(is_cut = true, rndrad=1, rimdep=.75) {
     cut_adj = is_cut? FIT_TOL : 0;
     butt_len = butt_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE, FRONT_BACK_RATIO) ;
     plen = PICKUP_STEM_LEN;
-    rndrad = 1;
-    rimdep = .75;
+	pickup_res = 2*DEFRES;
     
     rotate([0, 90, 0]) {
-        translate([0, 0, -plen -2*rndrad +5*FUSE_SHIFT])
+        translate([0, 0, -plen -rndrad])
         minkowski() {
-            cylinder(r=2*ENDPIN_RAD+cut_adj, h=plen);
+            cylinder(r=2*ENDPIN_RAD+cut_adj, h=plen, $fn=pickup_res);
             sphere(r=rndrad, $fn=LORES);
         }
         
-        translate([0, 0, -rndrad +FUSE_SHIFT]) 
-        funnel(rndrad, ENDPIN_RAD+cut_adj, res=DEFRES);
+        translate([0, 0, -rndrad -FUSE_SHIFT])
+        cylinder(r=ENDPIN_RAD+cut_adj, h=ENDPIN_DEP+3*(rndrad+FUSE_SHIFT), $fn=pickup_res);
         
-        cylinder(r=ENDPIN_RAD+cut_adj, h=ENDPIN_DEP);
-        
-        translate([0, 0, ENDPIN_DEP +rndrad -FUSE_SHIFT]) 
-        rotate([0, 180, 0]) 
-        funnel(rndrad, ENDPIN_RAD+cut_adj, res=DEFRES);
-        
-        translate([0, 0, ENDPIN_DEP +2*rndrad -5*FUSE_SHIFT])
-        difference() {
+        translate([0, 0, ENDPIN_DEP +rndrad -rimdep])
             minkowski() {
-                cylinder(r=2*ENDPIN_RAD+cut_adj, h=rimdep);
+                cylinder(r=2*ENDPIN_RAD+cut_adj, h=plen, $fn=pickup_res);
                 sphere(r=rndrad, $fn=LORES);
             }
-            translate([-4*ENDPIN_RAD,-4*ENDPIN_RAD, rimdep]) 
-                cube([8*ENDPIN_RAD,8*ENDPIN_RAD,8*ENDPIN_RAD]);
-        }
-        
-        translate([0, 0, ENDPIN_DEP +3*rndrad +rimdep -6*FUSE_SHIFT]) 
-        rotate([0, 180, 0]) 
-        funnel(1.5*rndrad, 2*ENDPIN_RAD+.5*cut_adj+rndrad, res=DEFRES);
-        
-        translate([0, 0, ENDPIN_DEP +3*rndrad +rimdep -7*FUSE_SHIFT])
-            cylinder(r=2*ENDPIN_RAD+.5*cut_adj +2.5*rndrad, h=plen);
-    }
+	}
 }
 
 module place_pickup(is_cut = true) {    
-    butt_len = butt_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, 
-        SHOULDER_FLARE, FRONT_BACK_RATIO);
-    body_rad = BODY_RAD;
+    rndrad = 2*BOT_RND_RAD;
+    rimdep = 2*BOT_RND_RAD;
     if (PICKUP_STYLE == 2) {
-        translate([SCALE_LEN +N_GAP +[.1,.15,.2,.25,.25,.25][MODEL]*body_rad, 
-                [.7, .85, .85, .85, .85, .85][MODEL]*body_rad, 
+        translate([SCALE_LEN +N_GAP +[.1,.15,.2,.25,.25,.25][MODEL]*BODY_RAD, 
+                [.7, .85, .85, .85, .85, .85][MODEL]*BODY_RAD, 
                 -(3*ENDPIN_RAD) -V_GAP ])
         rotate([0, 0, 60])  
         rotate([0, ENDPIN_DIP, 0])  
-        pickup(is_cut = true);
+        pickup(is_cut = true, rndrad, rimdep);
     } else if (PICKUP_STYLE == 1) {
-        bot_rad = (HEAD_STYLE == 1 ? 1 : TUNER_CAVITY_DOME_SCALE) *butt_len;
-        xplcmt = (HEAD_STYLE == 1 ? (butt_len -.5*ENDPIN_DEP)*cos(.85*ENDPIN_DIP): 
-                                    bot_rad -ENDPIN_DEP -[-1, -2.5, 5, 5, 5, -9][MODEL]);
-        translate([SCALE_LEN +N_GAP +xplcmt -ENDPIN_DEP,
-                0, -ENDPIN_PLCMT*bot_rad -V_GAP]) 
-        rotate([0, ENDPIN_DIP, 0])
-        pickup(is_cut = true);
+        bot_rad = (HEAD_STYLE == 1 ? 1 : 
+					TUNER_STYLE < 2 || FORCE_TAIL_CAVITY ? TUNER_CAVITY_DOME_SCALE :
+					1) *BUTT_LEN;
+		dx = bot_rad*cos(ENDPIN_DIP);
+		dz = bot_rad*sin(ENDPIN_DIP)*BOTTOM_SCALE;
+
+		translate([SCALE_LEN+dx, 0, -dz])
+		rotate([0, ENDPIN_DIP, 0])
+		translate([rndrad, 0, 0])
+        pickup(is_cut = true, rndrad, rimdep);
     }
 }
 

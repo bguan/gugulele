@@ -41,16 +41,19 @@ SKIP_ASSEMBLY = false;
 // High level params: Model specific configs - expect frequent change
 MODEL = 0;
 HEAD_STYLE = 0; // 0 headless  1 headed  2 deco-headless
-TUNER_STYLE = 0; // 0 hole 1 friction 2 sealed geared 3 banjo planetary 4 gotoh UPT  
+TUNER_STYLE = 0; // 0 hole 1 sealed geared 2 friction 3 banjo planetary 4 gotoh UPT  
 SPINE_STYLE = 0;  // 0 none 1 neck only 2 whole body 3 angle thru body
-SNDHOLE_STYLE = 0; // 0.none 1.side 2.f-hole 3.side+F 4.top 5.side+top 6.oval 7.side+oval
+SNDHOLE_STYLE = 0; // 0.none 1.side 2.f-hole 3.side+F 4.top 5.side+top 
+                   // 6.double ovals 7.side+double oval 8. single oval 9. single oval+side
 PICKUP_STYLE = 0;  // 0 none  1 end pin  2 side
-BRDG_STYLE = 0;  // 0 embed in body, 1 platform
+BRDG_STYLE = 0;  // 0 embed, no tie-block 1 raise, no tie-block 
 BRACE_STYLE = 0; // 0 none, 1 X, 2 +
 USE_SCREWS = false;  // when any GAP > 0, cut holes + threads for screws
 USE_HEAD_PIN = false; // for headed model to support  
+STRTIE_STYLE = 0; // for headed model only, 0 pegs  1 bridge tie  2 tail piece
 FORCE_TAIL_CAVITY = false; // some tuner allow tail plcmt without cavity
 FORCE_FRETBD_SCREWS = false; // allow fretbd screws just for decoration
+FORCE_FRETBD_TANG = false; // allow fretbd tounge and groove fitting even when not necessary
 B_GAP = 0;  // bridge gap to body
 F_GAP = 0;  // fretboard gap, between neck and board
 V_GAP = 0;  // vertical gap between top and bottom half of uke
@@ -60,8 +63,8 @@ H_GAP = 0;  // head gap to string_guide
 C_GAP = 0;  // cover on the back
 
 // Model driven params
-NUM_STRS = [4, 4, 4, 4, 4, 6][MODEL];
-SCALE_LEN = [270, 330, 380, 430, 480, 650][MODEL];
+NUM_STRS = [3, 4, 4, 4, 4, 6][MODEL];
+SCALE_LEN = [245, 330, 380, 430, 480, 650][MODEL];
 NUT_HOLE_GAP = [8.75, 9, 9.25, 9.5, 9.75, 8.5][MODEL];
 
 // Functions to expose calculation of various guord parameters
@@ -109,57 +112,60 @@ function gourd_len(nlen, nwth, nslope, mlen, flare, back_ratio) =
 NECK_SLOPE = 1/48;
 TOP_SCALE = 1/9; 
 HEAD_TOP_SCALE = 1/5;
-BOTTOM_SCALE = [1/2, 2/3, 2/3, 2/3, 2/3, 2/3][MODEL]; 
-FRONT_BACK_RATIO = [2, 1.5, 1.5, 1.5, 1.5, 1.5][MODEL]; 
+BOTTOM_SCALE = [NUM_STRS < 4 ? 3/4 : 2/3, 2/3, 2/3, 2/3, 2/3, 2/3][MODEL]; 
+FRONT_BACK_RATIO = 2;
 HEAD_FRONT_BACK_RATIO = [0, 1.5, 2][HEAD_STYLE];
 BRDG_INDENT = [NUM_STRS/8 + .2, 0][BRDG_STYLE];
 CHAMBER_BODY_RATIO = [.9, .92, .94, .96, .97, .92][MODEL]; 
 CHAMBER_TOP_SCALE = .75*TOP_SCALE; 
 CHAMBER_BOTTOM_SCALE = 1*BOTTOM_SCALE;
-CHAMBER_UP_SHIFT = 1.5; 
-CHAMBER_FRONT_SHIFT = [10, 4, 4.5, 5, 6, 7][MODEL]; //[10, 4, 5, 6.5, 7.5, 10][MODEL]; 
+CHAMBER_UP_SHIFT = [1, 1.1, 1.2, 1.3, 1.4, 1.5][MODEL]; 
+CHAMBER_FRONT_SHIFT = [10, 6, 6, 5, 7, 8][MODEL]; //[10, 4, 5, 6.5, 7.5, 10][MODEL]; 
 CHAMBER_TILT = .5; 
 CHAMBER_BACK_RATIO = HEAD_STYLE == 1 ? .9 : 
+        !FORCE_TAIL_CAVITY && TUNER_STYLE == 2 ? [.90, .91, .92, .93, .94, .95][MODEL] :
         !FORCE_TAIL_CAVITY && TUNER_STYLE == 3 ? [.83, .84, .85, .86, .87, .88][MODEL] :
         !FORCE_TAIL_CAVITY && TUNER_STYLE == 4 ? [.90, .91, .92, .93, .94, .95][MODEL]:
         [.7, .76, .82, .88, .9, .95][MODEL]; 
 SOUND_PORT_SCALE = V_GAP > 0 ? [.5, 1.5, .25*BOTTOM_SCALE] : 
                     [.6, 1.5, .25*BOTTOM_SCALE];
-TOP_HOLE_RATIO = [.1961, .1721, .1596, .1459, .1526, .1815][MODEL]; // of body_rad
-OVAL_WTH_RATIO = [.0565, .0645, .0675, .062, .0645, .065][MODEL]; // of body_rad
+
+// Helmholz target:
+// Pocket C7 2093Hz
+// Soprano A6 1760Hz
+// Concert G6 1568Hz
+// Tenor C6 1046.5Hz
+// Baritone A5 880.5Hz
+// Guitar E5 660Hz
+TOP_HOLE_RATIO = [.1874, .1975, .215, .217, .22, .2][MODEL]; // of body_rad
+OVAL_LEN_RATIO = SNDHOLE_STYLE >= 8 ? .37 :SNDHOLE_STYLE >= 6 ? .275 : 0; // of body_rad
+HOOK_WTH_RATIO = .1; // of body_rad
+HOOK_LEN_RATIO = [.45, .485, .55, .52, .6, .65][MODEL]; // of body_rad
+OVAL_WTH_RATIO = SNDHOLE_STYLE >= 8 ? [.095, .1055, .118, .0935, .155, .16][MODEL]: // of body_rad
+                 SNDHOLE_STYLE >= 6 ? [.063, .071, .0841, .0857, .0645, .065][MODEL] : 0; 
 
 // angle of flare out at shoulder, between 45 - 180, affects girth 
-SHOULDER_FLARE = [98, 99.5, 101, 102.5, 103, 103.5][MODEL]; 
-
-// Body specs
-BUTT_CHOP = HEAD_STYLE == 1 ?[15, 16, 17, 18, 19, 20][MODEL] :0;
-BODY_TCK = 6; 
+SHOULDER_FLARE = [NUM_STRS < 4 ? 102: 100, 101, 102, 103, 104, 103.5][MODEL]; 
 
 // Endpin/pickup specs
-ENDPIN_RAD = 5; // for strap pin or 1/4" pick up jack 
+ENDPIN_RAD = 5+BOT_RND_RAD; // for strap pin or 1/4" pick up jack 
 ENDPIN_DEP = 4;
 ENDPIN_DIP = HEAD_STYLE == 1 ? 55 : // angle pointing downward
             PICKUP_STYLE == 2 ? 20:
-            FORCE_TAIL_CAVITY || TUNER_STYLE < 3 ? [10, 10, 15, 15, 14, 6][MODEL] : 
-            TUNER_STYLE == 3 ? 59 : 50; 
-ENDPIN_PLCMT = HEAD_STYLE == 1 ? .425 : 
-            FORCE_TAIL_CAVITY || TUNER_STYLE < 3 ?
-                [.5, .5, .45, .4, .35, .3][MODEL] :
-            TUNER_STYLE == 3 ? 
-                [1.2, .8, .75, .695, .55, .45][MODEL] : 
-                [1.1, .75, .65, .6, .5, .4][MODEL];
+            FORCE_TAIL_CAVITY || TUNER_STYLE < 2 ? [10, 10, 15, 15, 14, 6][MODEL] : 
+            60;
 PICKUP_STEM_LEN = 35;
 
 // Bridge specs
-BRDG_TCK = [5, 5.5, 6, 6.5, 7, 9][MODEL];
+BRDG_TCK = [5.5, 5.5, 5.5, 5.5, 5.5, 7][MODEL];
 SDDL_RAD = 1;
-BRDG_WTH = SCALE_LEN/30; //SCALE_LEN/25;
-BRDG_CARVE_SCALE = [.475, .425, .375, .325, .275, .225][MODEL];
+BRDG_WTH = (HEAD_STYLE==1 && STRTIE_STYLE==1 ? 1.2 : 1)*SCALE_LEN/30; //SCALE_LEN/25;
+BRDG_CARVE_SCALE = [.6, .425, .375, .325, .275, .225][MODEL];
 BRDG_BOTTOM = BRDG_TCK - (HEAD_STYLE==1 ? 
                             (BRDG_WTH -SDDL_RAD)*BRDG_CARVE_SCALE : 
                             2*((BRDG_WTH/2)-SDDL_RAD)*BRDG_CARVE_SCALE);
 BRDG_LEN = 1.05*NUM_STRS*NUT_HOLE_GAP +2*SCALE_LEN*NECK_SLOPE +BRDG_BOTTOM;
-BRDG_PINHOLE_RAD = 2.55;
+BRDG_PINHOLE_RAD = MODEL == 0 ? 1.25 : 2.55;
 
 
 // head specs
@@ -168,12 +174,10 @@ HEAD_FLARE = [0, 100, MODEL < 5 ? 60 : 66][HEAD_STYLE]; // angle head flare
 HEAD_SIDE_CUT_ANGLE = 10;
 HEAD_STEM = [11, .01, .01][HEAD_STYLE];
 // to transform gourd shaped head by scaling shoulder, torso, butt, tail
-HEAD_MIDLEN = HEAD_STEM + 
-                [0, 5+ 2*MODEL +NUM_STRS*10, 
-                 [13,14,15,16,17,20][MODEL] ][HEAD_STYLE]; 
+HEAD_MIDLEN = HEAD_STEM + [0, 5+ 2*MODEL +floor(NUM_STRS/2)*20 +(NUM_STRS%2)*15, [13,14,15,16,17,20][MODEL] ][HEAD_STYLE]; 
 
 // neck specs
-NECK_LEN = .5*SCALE_LEN;  
+NECK_LEN = .4*SCALE_LEN;  
 NECK_HEAD_WTH = NUM_STRS * NUT_HOLE_GAP;
 NECK_JOINT_LEN = .1*NECK_LEN; 
 NECK_JOINT_WTH1 = .8 *NUM_STRS *NUT_HOLE_GAP;
@@ -184,36 +188,40 @@ NECK_JOINT_TCK = [6, 7, 8.5, 9.5, 10.5, 12][MODEL];
 BODY_RAD = body_rad(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SHOULDER_FLARE);
 BODY_FRONT_SCALE= front_scale(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE); 
 BODY_BACK_SCALE = back_scale(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE, FRONT_BACK_RATIO);
+BUTT_LEN = butt_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE, FRONT_BACK_RATIO);
+BUTT_CHOP = HEAD_STYLE == 1 ? (FRONT_BACK_RATIO*.125)*BUTT_LEN :0;
+BODY_TCK = 6; 
+
 
 // Tuner and String Guide specs
-TUNER_HOLE_RAD = [5, 2.5, 5, 5, 5][TUNER_STYLE] + BOT_RND_RAD; 
-TUNER_TOP_RAD = [7.5, 5.5, 8.5, 7.5, 7.5][TUNER_STYLE] + TOP_RND_RAD; 
-TUNER_BOT_RAD = [5, 11, 10, 8.5, 7.5][TUNER_STYLE] + BOT_RND_RAD; 
-TUNER_BOT_LEN = [23, 9, 8, 23, 14][TUNER_STYLE]; 
+TUNER_HOLE_RAD = [5, 5, 3.5, 5, 5][TUNER_STYLE] + BOT_RND_RAD; 
+TUNER_TOP_RAD = [7.5, 8.5, 5.5, 7.5, 7.5][TUNER_STYLE] + TOP_RND_RAD; 
+TUNER_BOT_RAD = [5, 10, 11, 8.5, 7.5][TUNER_STYLE] + BOT_RND_RAD; 
+TUNER_BOT_LEN = [23, 8, 9, 23, 14][TUNER_STYLE]; 
 TUNER_BTN_RAD = [11, 11, 11, 11, 9.5][TUNER_STYLE] + BOT_RND_RAD; 
 TUNER_GAP = max(25, max(TUNER_TOP_RAD, TUNER_BOT_RAD, TUNER_BTN_RAD)*2.1); 
-TUNER_UPLIFT = V_GAP == 0 && TOP_RND_RAD != BOT_RND_RAD ? 0 : 1;
-TUNER_BD_TCK = [10, 10, 10, 13, 10][TUNER_STYLE]; 
+TUNER_UPLIFT = HEAD_STYLE == 1 ? [.5,2.5,3,3,3,3][MODEL] : V_GAP == 0 && TOP_RND_RAD != BOT_RND_RAD ? 0 : 1;
+TUNER_BD_TCK = [10, 13, 10, 13, 10][TUNER_STYLE]; 
 HEAD_TUNER_WIDEN = 0;
 STR_GUIDE_ROD_RAD = 2.25;
 
-ANCHORPIN_RAD =  BOT_RND_RAD > .75 ? 0 : [0, 0, 1, .7, .2][TUNER_STYLE]; 
-ANCHORPIN_OFFSET = [0, 0, 11, 6.8, 7][TUNER_STYLE]; 
-ANCHORPIN_DEP = [0, 0, 8, 3.5, 3][TUNER_STYLE];
-STR_HOLE_FROM_COUNTER = [15, 15, 22.5, 23, 17.5][TUNER_STYLE];
+ANCHORPIN_RAD =  [0, 1, 0, .5, .5][TUNER_STYLE]; 
+ANCHORPIN_OFFSET = [0, 11, 0, 6.8, 7][TUNER_STYLE]; 
+ANCHORPIN_DEP = [0, 8, 0, 3.5, 3][TUNER_STYLE];
+STR_HOLE_FROM_COUNTER = [15, 22.5, 15, 23, 17.5][TUNER_STYLE];
 ANCHORPIN_ANGLE = [45, 45, 60][HEAD_STYLE]; //45;
-PEGS_SHIFT = -HEAD_STEM + [-27,-28,-29,-30,-31,-30][MODEL]; // pegs plcmt
-PEGS_DIVIDE = MODEL < 5 ? .4 : .6; // gap ratio btw L/R rows
+PEGS_SHIFT = -HEAD_STEM + [-6,-7,-19,-20,-21,-20][MODEL]; // pegs plcmt
+PEGS_DIVIDE = MODEL < 5 ? .5 : .6; // gap ratio btw L/R rows
 
 // Fretboard specs
-FRETBD_LEN = .66*SCALE_LEN; //[.66, .66, .66, .695, .695, .695][MODEL]*SCALE_LEN;
-FRETBD_HD_TCK = NUM_STRS;
+FRETBD_LEN = (MODEL < 5 ? .615 :.66)*SCALE_LEN; //[.66, .66, .66, .695, .695, .695][MODEL]*SCALE_LEN;
+FRETBD_HD_TCK = [1, 2, 3, 3, 3, 4][MODEL];
 FRETBD_RISE = 1.25; // degree
 FRET_RAD = 1.3; 
 FRETBD_EXTN = [7,8,9,10,11,12][MODEL];
 FRET_INSET = 0.2;
 FRETBD_TOUNGE_WTH = .75*NECK_HEAD_WTH;
-FRETBD_TOUNGE_LEN = FRETBD_LEN -NECK_LEN;
+FRETBD_TOUNGE_LEN = .75*(FRETBD_LEN -NECK_LEN);
 
 MIN_FRET_WTH = 4.5;
 SEMI_RATIO = pow(2, 1/12); // ratio of each semitone to next is 2^(1/12)
@@ -221,7 +229,7 @@ function accum_mult_n(x, n) = n<=0 ? 0: x + accum_mult_n(x/SEMI_RATIO,n-1);
 FSCALE_SUM = accum_mult_n(1, 12); 
 F1_LEN = 0.5*SCALE_LEN/FSCALE_SUM;  // half of scale length is 1 octave
 
-BRACE_WTH = 1;
+BRACE_WTH = 2;
 
 // LOGO
 MODEL_CODE = str(MODEL, HEAD_STYLE, "-", 
@@ -239,10 +247,10 @@ LOGO_FONT = "Tahoma";
 LOGO_SIZE = 7;
 
 // BACK COVER
-BACK_COVER_RATIO = [.5, .5, .5, .5, .5, .5][MODEL];
-BACK_COVER_SHIFT = [3, 4, 5, 5, 3, 2][MODEL];
-BACK_COVER_PLCMT = [30, 43, 50, 56, 60, 81.5][MODEL]; 
-BACK_COVER_ANGLE = [2.5, 2.5, 2.5, 2.5, 1.5, .5][MODEL];
+BACK_COVER_RATIO = [.45, .45, .45, .5, .5, .5][MODEL];
+BACK_COVER_SHIFT = [5, 6, 7, 8.5, 9, 2][MODEL];
+BACK_COVER_PLCMT = [30, 43, 52.3, 57, 60, 81.5][MODEL]; 
+BACK_COVER_ANGLE = [2.5, 2.5, 3, 3.25, 1.5, .5][MODEL];
 
 // SCREWS
 GEN_SCREW_MDL = "M1.6x12"; 
@@ -291,7 +299,9 @@ SPINE_LEN =
     SPINE_STYLE == 2 ? 
         gourd_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE,FRONT_BACK_RATIO)
         -SPINE_PRE_LEN
-		-(HEAD_STYLE==1 ? BUTT_CHOP +3 : TUNER_CAVITY_CUT -[9,9,6,3,10,40][MODEL]):
+		-(HEAD_STYLE==1 ? BUTT_CHOP +3 : 
+		  TUNER_STYLE < 2 || FORCE_TAIL_CAVITY ? TUNER_CAVITY_CUT -[9,9,6,3,10,40][MODEL] +SPINE_GAP/2 :
+		  10 +SPINE_GAP/2):
     gourd_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE,FRONT_BACK_RATIO)
         -(HEAD_STYLE==1 ? BUTT_CHOP + (!SPINE_TENTED? SPINE_PRE_LEN: 0): 
           N_GAP +V_GAP <= 0 ? 0 :TUNER_STYLE == 3 ? 1.8*TUNER_BTN_RAD: 1.65*TUNER_BTN_RAD);
@@ -299,11 +309,11 @@ SPINE_LEN =
 // dist from zero plane to slice off top & bottom of head 
 HEAD_POKED = len(search(SPINE_STYLE, [1,2])) > 0 && 
             (V_GAP+F_GAP+H_GAP+N_GAP == 0 || H_GAP>0 && USE_SCREWS);
-HEAD_SLICE = [[1, 1.2, 1.4, .81, 1.4][TUNER_STYLE],
-              [-3, -4.25, -4.5, -4.75, -5, -8][MODEL]]; 
+HEAD_SLICE = [[1, 5, .25, .81, 1.4][TUNER_STYLE],
+              [-3.25, -4.25, -4.5, -4.75, -5, -8][MODEL]]; 
 HEADLESS_STRING_ANGLE = [ 
-    (MODEL == 5 ? 49 : 44), 0, 
-    [30, 29, 28, 27, 26, 29][MODEL] +(HEAD_POKED ?1 :0) 
+    [36, 44, 44, 44, 44, 49][MODEL], 0, 
+    [35, 29, 28, 27, 26, 29][MODEL] +(HEAD_POKED ?1 :0) 
     -(F_GAP+V_GAP+H_GAP+N_GAP>0 ? 0: 9)
    ][HEAD_STYLE]; 
 F0_RAD = 1.75;
@@ -316,12 +326,11 @@ HEADLESS_FRONT_GROOVE_PLCMT = [
     (HEAD_POKED ? -1.5: -1.6)*HEAD_MIDLEN, 0, 
     -.3*HEAD_MIDLEN];    
 
-BUTT_LEN = butt_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE, FRONT_BACK_RATIO);
 TUNER_CAVITY_WTH = .8*NUM_STRS *TUNER_GAP;
 TUNER_CAVITY_DOME_SCALE = (BUTT_LEN - [27, 27, 27, 27, 25, 35][MODEL])/BUTT_LEN;
 CAVITY_DOME_SIDE_STRETCH = 1.1;
 CAVITY_DOME_VERT_STRETCH = 2;
-BODY_LEN = SCALE_LEN + BUTT_LEN - (HEAD_STYLE == 1? BUTT_CHOP : 0);
+BODY_LEN = SCALE_LEN + BUTT_LEN - BUTT_CHOP;
 
 BRDG_SET = body_rad(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SHOULDER_FLARE)
             *TOP_SCALE -BRDG_INDENT;
@@ -331,8 +340,7 @@ TUNER_CAVITY_DEP = HEAD_STYLE == 1 ? 0 :
              FRONT_BACK_RATIO) -TUNER_CAVITY_CUT;
 
 TUNER_FANOUT_RAD = butt_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, 
-                    SHOULDER_FLARE, FRONT_BACK_RATIO) 
-					-.4*TUNER_GAP -2*max(TOP_RND_RAD, BOT_RND_RAD);
+                    SHOULDER_FLARE, FRONT_BACK_RATIO) -2*max(TOP_RND_RAD, BOT_RND_RAD) -9;
 STR_GUIDE_PLCMT = SCALE_LEN + max(TUNER_CAVITY_DEP, .5*TUNER_FANOUT_RAD);
 STR_GUIDE_SET_OFF_BRDG = [1, 1.5, 2.25, 3, 3.5, 4.5][MODEL];
 

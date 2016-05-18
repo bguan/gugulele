@@ -51,12 +51,12 @@ module quartersphere(rad, is_hires = false) {
     }
 }
 
-module round_rod(rod_len, rod_rad, is_hires = false) {    
+module round_rod(rod_len, rod_rad, res = DEFRES) {    
     hull() {
         translate([0, -rod_len/2, 0]) 
-            sphere(r=rod_rad, $fn=(is_hires ? HIRES : DEFRES));
+            sphere(r=rod_rad, $fn=res);
         translate([0, rod_len/2, 0]) 
-            sphere(r=rod_rad, $fn=(is_hires ? HIRES : DEFRES));
+            sphere(r=rod_rad, $fn=res);
     }
 }
 
