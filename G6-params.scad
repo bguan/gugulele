@@ -153,7 +153,7 @@ ENDPIN_DEP = 4;
 ENDPIN_DIP = HEAD_STYLE == 1 ? 55 : // angle pointing downward
             PICKUP_STYLE == 2 ? 20:
             FORCE_TAIL_CAVITY || TUNER_STYLE < 2 ? [10, 10, 15, 15, 14, 6][MODEL] : 
-            60;
+            58;
 PICKUP_STEM_LEN = 35;
 
 // Bridge specs
@@ -201,7 +201,7 @@ TUNER_BOT_LEN = [23, 8, 9, 23, 14][TUNER_STYLE];
 TUNER_BTN_RAD = [11, 11, 11, 11, 9.5][TUNER_STYLE] + BOT_RND_RAD; 
 TUNER_GAP = max(25, max(TUNER_TOP_RAD, TUNER_BOT_RAD, TUNER_BTN_RAD)*2.1); 
 TUNER_UPLIFT = HEAD_STYLE == 1 ? [.5,2.5,3,3,3,3][MODEL] : V_GAP == 0 && TOP_RND_RAD != BOT_RND_RAD ? 0 : 1;
-TUNER_BD_TCK = [10, 13, 10, 13, 10][TUNER_STYLE]; 
+TUNER_BD_TCK = [10, 13, 10, 14, 10][TUNER_STYLE]; 
 HEAD_TUNER_WIDEN = 0;
 STR_GUIDE_ROD_RAD = 2.25;
 

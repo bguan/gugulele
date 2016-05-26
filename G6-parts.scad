@@ -194,11 +194,15 @@ module body() {
 				intersection() {
 					// intersect with scaled half cylinder to make sure the join is seamless
 					if (TOP_RND_RAD > 0) {
+						/*
 						translate([NECK_LEN +N_GAP + shoulder_len + torso_len -3*FUSE_SHIFT, 0, -FUSE_SHIFT])
 						difference() {
 							scale([1, 1, TOP_SCALE]) rotate([0, 90, 0]) cylinder(h=BUTT_LEN, r=body_rad, $fn=HIRES);
 							translate([0, -body_rad, -body_rad]) cube([BUTT_LEN, 2*body_rad, body_rad]);
 						}
+						*/
+						translate([NECK_LEN +N_GAP + shoulder_len + torso_len -3*FUSE_SHIFT, 0, -FUSE_SHIFT])
+								butt(0, back_scale*1.05, body_rad, TOP_SCALE, BOTTOM_SCALE); 
 					}
 					
 					
@@ -235,35 +239,25 @@ module body() {
 					torso(1, front_scale, torso_len, body_rad, TOP_SCALE, BOTTOM_SCALE);
 
 				difference() {
-					intersection() {
-						// intersect with butt without rounding to make sure the join is seamless
-						if (BOT_RND_RAD > 0) {
+					minkowski() {
+						difference() {
 							translate([NECK_LEN +N_GAP + shoulder_len + torso_len -3*FUSE_SHIFT, 0, -V_GAP])
-							difference() {
-								scale([1, 1, BOTTOM_SCALE]) rotate([0, 90, 0]) cylinder(h=BUTT_LEN, r=body_rad, $fn=HIRES);
-								translate([0, -body_rad, 0]) cube([BUTT_LEN, 2*body_rad, body_rad]);
-							}
-						}
-						
-						minkowski() {
-							difference() {
-								translate([NECK_LEN +N_GAP + shoulder_len + torso_len -3*FUSE_SHIFT, 0, -V_GAP])
-									butt(1, back_scale, body_rad -BOT_RND_RAD, TOP_SCALE, BOTTOM_SCALE); 
+								butt(1, back_scale, body_rad -BOT_RND_RAD, TOP_SCALE, BOTTOM_SCALE); 
 
-								if (HEAD_STYLE != 1) union(){ 
-									if (TUNER_STYLE < 2 || FORCE_TAIL_CAVITY) {
-										translate([N_GAP, 0, -V_GAP])
-											tail_tuner_cavity(4*BOT_RND_RAD);
-									}
-									translate([N_GAP, 0, TUNER_UPLIFT -TUNER_BD_TCK +FIT_TOL -V_GAP])
-										tail_pegs(is_cut = true);
+							if (HEAD_STYLE != 1) union(){ 
+								if (TUNER_STYLE < 2 || FORCE_TAIL_CAVITY) {
+									translate([N_GAP, 0, -V_GAP])
+										tail_tuner_cavity(4*BOT_RND_RAD);
 								}
+								translate([N_GAP, 0, TUNER_UPLIFT -TUNER_BD_TCK +FIT_TOL -V_GAP])
+									tail_pegs(is_cut = true);
+							}
 
-								place_pickup(is_cut=true);
-							}
-							if (BOT_RND_RAD > 0) {
-								sphere(r=BOT_RND_RAD, $fn=LORES);
-							}
+							place_pickup(is_cut=true);
+						}
+						if (BOT_RND_RAD > 0) {
+							scale([1, 1, BOTTOM_SCALE])
+							sphere(r=BOT_RND_RAD, $fn=LORES);
 						}
 					}
 
@@ -813,24 +807,24 @@ module bridge(is_cut = false) {
             for (x = [-1, 1]) { 
                 translate([x*(SDDL_RAD+cut_rad), brdg_len/2 +1, BRDG_TCK]) 
                 scale([1, 1, cut_scale])  
-                rotate([90, 0, 0]) cylinder(r=cut_rad, h=brdg_len+2);
+                rotate([90, 0, 0]) cylinder(r=cut_rad, h=brdg_len+2, $fn=2*DEFRES);
             } 
             // bridge left/right carves
             for (y = [-1, 1]) { 
                 translate([-BRDG_WTH, y*brdg_len/2, BRDG_TCK+SDDL_RAD]) 
-                rotate(90,[0,1,0]) cylinder(h=2*BRDG_WTH, r=side_cut_rad);
+                rotate(90,[0,1,0]) cylinder(h=2*BRDG_WTH, r=side_cut_rad, $fn=2*DEFRES);
             }
         } else if (HEAD_STYLE==1 && !is_cut) {
             // bridge back carve
             translate([STRTIE_STYLE == 1 ? cut_rad+SDDL_RAD : BRDG_WTH, brdg_len/2 +1, BRDG_TCK]) 
             scale([1, 1, (STRTIE_STYLE == 1 ? 1.2 : 1)*cut_scale])
-            rotate([90, 0, 0]) cylinder(r=cut_rad, h=brdg_len+2);
+            rotate([90, 0, 0]) cylinder(r=cut_rad, h=brdg_len+2, $fn=2*DEFRES);
             
             if (STRTIE_STYLE != 1) {
 				// bridge left/right carves
 				for (y = [-1, 1]) { 
 					translate([-BRDG_WTH, y*brdg_len/2, BRDG_TCK+SDDL_RAD]) 
-					rotate(90,[0,1,0]) cylinder(h=2*BRDG_WTH, r=side_cut_rad);
+					rotate(90,[0,1,0]) cylinder(h=2*BRDG_WTH, r=side_cut_rad, $fn=2*DEFRES);
 				}
 
 				if (STRTIE_STYLE == 0) thru_holes();
