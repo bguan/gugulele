@@ -1,0 +1,59 @@
+include <../G6.scad>;
+
+// Overriding Default Params
+HIRES = 40;//180; 
+DEFRES = 20;//45;
+LORES = 10;//15;
+
+SHOW_LOGO = true; 
+//SHOW_HEAD = false;
+//SHOW_NECK = false;
+//SHOW_FRETBD = false;
+//SHOW_FRETS = false;
+//SHOW_TOP = false;
+//SHOW_BOTTOM = false;
+//SHOW_BRIDGE = false;
+//SHOW_GUIDE = false;
+//SHOW_BRACE = false;
+// useful for debugging
+//SHOW_PEGS = true;  
+//SHOW_STRINGS = true;
+//SHOW_SCREWS = true;
+//SHOW_SPINE = true;
+//SHOW_PICKUP = true;
+//SHOW_CUTOUT = true;
+//SHOW_CROSS_SECTION = true;
+
+// High level params
+TOP_RND_RAD = .5;
+BOT_RND_RAD = .5;
+HD_RND_RAD = .5;
+MODEL = 4;
+TUNER_STYLE = 3;
+HEAD_STYLE = 2;
+F_GAP = 100;
+B_GAP = 100; 
+USE_SCREWS = true;
+BRDG_STYLE = 1;
+FRETBD_RISE = 1.3;
+SNDHOLE_STYLE = 8;
+SPINE_STYLE = 2;   
+BRACE_STYLE = 1 ;   
+PICKUP_STYLE = 2;
+FRETBD_LEN = .66*SCALE_LEN;
+BRDG_TCK = 6;
+FORCE_FRETBD_TANG = true;
+ENDPIN_DIP = 30;
+ENDPIN_ROLL = 10;
+ENDPIN_PUSHIN_RATIO = .1;
+FRONT_BACK_RATIO = 1.618;
+SHOULDER_FLARE = 104.5; 
+NUT_HOLE_GAP = 9.65;
+STR_GUIDE_SET_OFF_BRDG = 4;
+CHAMBER_UP_SHIFT = 2.5;
+CHAMBER_TILT = .4;
+CHAMBER_BACK_RATIO = .95;
+BUTT_CHOP = 2.5;
+BRACE_LEN_RATIO = 1.35;
+OVAL_LEN_RATIO = .3;
+OVAL_WTH_RATIO = .12;
