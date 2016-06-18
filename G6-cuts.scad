@@ -4,14 +4,14 @@
 
 module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
     brad = BACK_COVER_RATIO * body_rad + (is_cut ? FIT_TOL : 0);
-    irad = brad -2.2*BACK_SCREW_HEAD_RAD + (is_cut ? FIT_TOL : 0);
+    irad = brad -3*BACK_SCREW_HEAD_RAD + (is_cut ? FIT_TOL : 0);
     //tck = is_cut ? 1.4 : bot_scale*brad;
     //itck = is_cut ? .75*bot_scale*brad : 1.4;
-    tck = is_cut ? 1 : bot_scale*brad;
-    itck = is_cut ? .75*bot_scale*brad : 1;
-    rndrad = .65;
-    orad = .65;
-    side_scale = [.88, .88, .88, .88, .88, .95][MODEL];
+    tck = is_cut ? .75 : bot_scale*brad;
+    itck = is_cut ? .5*bot_scale*brad : 1;
+    rndrad = BOT_RND_RAD; //.65;
+    orad = BOT_RND_RAD; //.65;
+    side_scale = BACK_COVER_SIDE_SCALE;
     
     rotate([0, BACK_COVER_ANGLE, 0])
     translate([0, 0, -BACK_COVER_PLCMT]) {
@@ -36,7 +36,7 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
                             translate([0, -2*brad, -2*brad]) cube([4*brad, 4*brad, 4*brad]);
                         }
                         
-                        scale([CHAMBER_BACK_RATIO * back_scale, 1, 1]) {
+                        scale([CHAMBER_BACK_RATIO*back_scale, 1, 1]) {
                             if (is_cut) {
                                 cylinder(r=irad, h=itck, $fn=HIRES);
                             } else {
@@ -66,7 +66,7 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
                             }
                             translate([0, -2*brad, -2*brad]) cube([4*brad, 4*brad, 4*brad]);
                         }
-                        scale([back_scale, 1, 1]) {
+                        scale([CHAMBER_BACK_RATIO*back_scale, 1, 1]) {
                             minkowski() {
                                 cylinder(r=brad -rndrad, h=tck-rndrad, $fn=HIRES);
                                 if (rndrad > 0) sphere(r=rndrad, $fn=LORES);
@@ -84,18 +84,20 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
             
             if (!is_cut && USE_SCREWS) {
                 for(fb =[1, -1]) {
-                    translate([fb*(-(fb >0 ?front_scale :back_scale)*brad +2*BACK_SCREW_HEAD_RAD), 
-                            0, -2])
-                    rotate([180, 0, 0])
-                    union() {
-                        cylinder(r=BACK_SCREW_HEAD_RAD, h=10);
-                        screw(BACK_SCREW_MDL, thread=SCREW_THREAD);
-                    }
+					for(lr = fb > 0 ? [-.5, .5] : [-1, 1]) {
+						translate([fb*(-(fb >0 ?front_scale :CHAMBER_BACK_RATIO*back_scale)*brad +3.5*BACK_SCREW_HEAD_RAD), 
+								lr*4*ENDPIN_RAD, -2])
+						rotate([180, 0, 0])
+						union() {
+							cylinder(r=BACK_SCREW_HEAD_RAD, h=10);
+							screw(BACK_SCREW_MDL, thread=SCREW_THREAD);
+						}
+					}
                 }
                 
                 for(lr =[-1, 1]) {
                     translate([-.1*BODY_RAD, 
-                        lr*(side_scale*brad -BACK_SCREW_HEAD_RAD -.25), 
+                        lr*(side_scale*brad -2*BACK_SCREW_HEAD_RAD), 
                         -2])
                     rotate([180, 0, 0])
                     union() {
@@ -108,18 +110,20 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
         
         if (is_cut && USE_SCREWS) {
             for(fb =[1, -1]) {
-                translate([fb*(-(fb >0 ?front_scale :back_scale)*brad +2*BACK_SCREW_HEAD_RAD), 
-                        0, -2])
-                rotate([180, 0, 0])
-                union() {
-                    cylinder(r=BACK_SCREW_HEAD_RAD, h=10);
-                    screw(BACK_SCREW_MDL, thread=SCREW_THREAD);
-                }
+				for(lr = fb > 0 ? [-.5, .5] : [-1, 1]) {
+					translate([fb*(-(fb >0 ?front_scale :CHAMBER_BACK_RATIO*back_scale)*brad +3.5*BACK_SCREW_HEAD_RAD), 
+							lr*4*ENDPIN_RAD, -2])
+					rotate([180, 0, 0])
+					union() {
+						cylinder(r=BACK_SCREW_HEAD_RAD, h=10);
+						screw(BACK_SCREW_MDL, thread=SCREW_THREAD);
+					}
+				}
             }
             
             for(lr =[-1, 1]) {
                 translate([-.1*BODY_RAD, 
-                    lr*(side_scale*brad -BACK_SCREW_HEAD_RAD -.25), 
+                    lr*(side_scale*brad -2*BACK_SCREW_HEAD_RAD), 
                     -2])
                 rotate([180, 0, 0])
                 union() {
@@ -134,8 +138,8 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
                 
 module oval_holes(body_rad, front_scale, xlen, ylen) {
     for (lr = (SNDHOLE_STYLE >= 8 ? [-1] :[-1, 1])) {
-        translate([0, lr*body_rad*.6, 0])
-        rotate([0, 0, lr*24])
+        translate([0, lr*body_rad*OVAL_WIDEN_RATIO, 0])
+        rotate([0, 0, lr*OVAL_ANGLE])
         scale([xlen/ylen, 1, 1])
         cylinder(r =ylen, h = body_rad);
     }
@@ -237,9 +241,9 @@ module front_chamber(layer, chamber_front_scale, chamber_rad) {
     scale([chamber_front_scale, 1, 
         (layer == 0 ? CHAMBER_TOP_SCALE : CHAMBER_BOTTOM_SCALE)] ) 
     if (layer == 0) {
-        mirror([1, 0, 0]) quartersphere(chamber_rad, true);
+        mirror([1, 0, 0]) quartersphere(chamber_rad, res=HIRES/2);
     } else {
-        mirror([0, 0, 1]) mirror([1, 0, 0]) quartersphere(chamber_rad, true);
+        mirror([0, 0, 1]) mirror([1, 0, 0]) quartersphere(chamber_rad, res=HIRES/2);
     }
 }
 
@@ -247,9 +251,9 @@ module back_chamber(layer, chamber_back_scale, chamber_rad) {
     scale([chamber_back_scale, 1, 
         (layer == 0 ? CHAMBER_TOP_SCALE : CHAMBER_BOTTOM_SCALE)] ) 
     if (layer == 0) {
-        quartersphere(chamber_rad, true);
+        quartersphere(chamber_rad, res=HIRES/2);
     } else {
-        mirror([0, 0, 1]) quartersphere(chamber_rad, true);
+        mirror([0, 0, 1]) quartersphere(chamber_rad, res=HIRES/2);
     }
 }
 
@@ -302,9 +306,9 @@ module chamber(chamber_front_scale, chamber_back_scale, chamber_rad) {
 }
 
 module fhole(shoulder_len, torso_len, body_rad, hook_wth, hook_len) {
-    translate( [NECK_LEN +N_GAP +shoulder_len +[.8, .7, .8][BRACE_STYLE]*torso_len, 
+    translate( [NECK_LEN +N_GAP +shoulder_len +[.8, .6, .8][BRACE_STYLE]*torso_len, 
                 -body_rad *.55, -BODY_TCK])  
-    rotate([0, 0, [-3, -12, -8][BRACE_STYLE]]) 
+    rotate([0, 0, [-3, -15, -8][BRACE_STYLE]]) 
         scurve(hook_wth, hook_len, 5*BODY_TCK);
 }
 
@@ -508,7 +512,7 @@ module pickup(is_cut = true, rndrad=1, rimdep=.75) {
     plen = PICKUP_STEM_LEN;
 	pickup_res = 2*DEFRES;
     
-    rotate([0, 90, 0]) {
+    rotate([0, 90 +ENDPIN_ROLL, 0]) {
         translate([0, 0, -plen -rndrad])
         minkowski() {
             cylinder(r=2*ENDPIN_RAD+cut_adj, h=plen, $fn=pickup_res);
@@ -527,25 +531,31 @@ module pickup(is_cut = true, rndrad=1, rimdep=.75) {
 }
 
 module place_pickup(is_cut = true) {    
-    rndrad = 2*BOT_RND_RAD;
-    rimdep = 2*BOT_RND_RAD;
+    rndrad = 1.5*BOT_RND_RAD;
+    rimdep = 1.5*BOT_RND_RAD;
+
     if (PICKUP_STYLE == 2) {
-        translate([SCALE_LEN +N_GAP +[.1,.15,.2,.25,.25,.25][MODEL]*BODY_RAD, 
-                [.7, .85, .85, .85, .85, .85][MODEL]*BODY_RAD, 
-                -(3*ENDPIN_RAD) -V_GAP ])
-        rotate([0, 0, 60])  
-        rotate([0, ENDPIN_DIP, 0])  
+		roll = ENDPIN_ROLL +5;
+
+		dx = (BUTT_LEN*cos(ENDPIN_DIP))*(1-ENDPIN_PUSHIN_RATIO);
+		dy = (BODY_RAD*sin(ENDPIN_DIP))*(1-ENDPIN_PUSHIN_RATIO);
+		dz = 4*ENDPIN_RAD;
+
+        translate([SCALE_LEN+dx, dy, -dz -V_GAP])
+        rotate([0, 0, ENDPIN_DIP])  
+        rotate([0, roll, 0])  
         pickup(is_cut = true, rndrad, rimdep);
     } else if (PICKUP_STYLE == 1) {
         bot_rad = (HEAD_STYLE == 1 ? 1 : 
 					TUNER_STYLE < 2 || FORCE_TAIL_CAVITY ? TUNER_CAVITY_DOME_SCALE :
-					1) *BUTT_LEN;
+					1-ENDPIN_PUSHIN_RATIO) *BUTT_LEN;
 		dx = bot_rad*cos(ENDPIN_DIP);
-		dz = bot_rad*sin(ENDPIN_DIP)*BOTTOM_SCALE;
+		dz = (1-ENDPIN_PUSHIN_RATIO)*BODY_RAD*sin(ENDPIN_DIP)*BOTTOM_SCALE;
 
-		translate([SCALE_LEN+dx, 0, -dz])
+		translate([SCALE_LEN+dx, 0, -dz -V_GAP])
 		rotate([0, ENDPIN_DIP, 0])
 		translate([rndrad, 0, 0])
+        rotate([0, ENDPIN_ROLL, 0])  
         pickup(is_cut = true, rndrad, rimdep);
     }
 }

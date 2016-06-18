@@ -46,7 +46,7 @@ SPINE_STYLE = 0;  // 0 none 1 neck only 2 whole body 3 angle thru body
 SNDHOLE_STYLE = 0; // 0.none 1.side 2.f-hole 3.side+F 4.top 5.side+top 
                    // 6.double ovals 7.side+double oval 8. single oval 9. single oval+side
 PICKUP_STYLE = 0;  // 0 none  1 end pin  2 side
-BRDG_STYLE = 0;  // 0 embed, no tie-block 1 raise, no tie-block 
+BRDG_STYLE = 0;  // 0 embed, 1 raise, 2 embed w under reinforcement
 BRACE_STYLE = 0; // 0 none, 1 X, 2 +
 USE_SCREWS = false;  // when any GAP > 0, cut holes + threads for screws
 USE_HEAD_PIN = false; // for headed model to support  
@@ -115,12 +115,12 @@ HEAD_TOP_SCALE = 1/5;
 BOTTOM_SCALE = [NUM_STRS < 4 ? 3/4 : 2/3, 2/3, 2/3, 2/3, 2/3, 2/3][MODEL]; 
 FRONT_BACK_RATIO = 2;
 HEAD_FRONT_BACK_RATIO = [0, 1.5, 2][HEAD_STYLE];
-BRDG_INDENT = [NUM_STRS/8 + .2, 0][BRDG_STYLE];
+BRDG_INDENT = [NUM_STRS/8 + .2, 0, NUM_STRS/8][BRDG_STYLE];
 CHAMBER_BODY_RATIO = [.9, .92, .94, .96, .97, .92][MODEL]; 
 CHAMBER_TOP_SCALE = .75*TOP_SCALE; 
 CHAMBER_BOTTOM_SCALE = 1*BOTTOM_SCALE;
-CHAMBER_UP_SHIFT = [1, 1.1, 1.2, 1.3, 1.4, 1.5][MODEL]; 
-CHAMBER_FRONT_SHIFT = [10, 6, 6, 5, 7, 8][MODEL]; //[10, 4, 5, 6.5, 7.5, 10][MODEL]; 
+CHAMBER_UP_SHIFT = [1, 1.5, 1.7, 1.9, 2.2, 2.7][MODEL]; 
+CHAMBER_FRONT_SHIFT = [10, 6, 6, 7, 8, 8][MODEL]; //[10, 4, 5, 6.5, 7.5, 10][MODEL]; 
 CHAMBER_TILT = .5; 
 CHAMBER_BACK_RATIO = HEAD_STYLE == 1 ? .9 : 
         !FORCE_TAIL_CAVITY && TUNER_STYLE == 2 ? [.90, .91, .92, .93, .94, .95][MODEL] :
@@ -130,19 +130,21 @@ CHAMBER_BACK_RATIO = HEAD_STYLE == 1 ? .9 :
 SOUND_PORT_SCALE = V_GAP > 0 ? [.5, 1.5, .25*BOTTOM_SCALE] : 
                     [.6, 1.5, .25*BOTTOM_SCALE];
 
-// Helmholz target:
-// Pocket C7 2093Hz
-// Soprano A6 1760Hz
-// Concert G6 1568Hz
-// Tenor C6 1046.5Hz
-// Baritone A5 880.5Hz
-// Guitar E5 660Hz
+// Helmholz target: 
+// 1568Hz G6 for all ukes, 1318Hz E6 for baritone, 
+// and 1047Hz C6 for guitar but classically should be:
+// Pocket C7 2093Hz, Soprano A6 1760Hz, Concert G6 1568Hz, Tenor C6 1047Hz, 
+// Baritone A5 880Hz, Guitar E5 660Hz
 TOP_HOLE_RATIO = [.1874, .1975, .215, .217, .22, .2][MODEL]; // of body_rad
-OVAL_LEN_RATIO = SNDHOLE_STYLE >= 8 ? .37 :SNDHOLE_STYLE >= 6 ? .275 : 0; // of body_rad
+OVAL_LEN_RATIO = SNDHOLE_STYLE >= 8 ? [.3, .3, .333, .39, .39, .4][MODEL] :
+				 SNDHOLE_STYLE >= 6 ? .25 : 0; // of body_rad
 HOOK_WTH_RATIO = .1; // of body_rad
-HOOK_LEN_RATIO = [.45, .485, .55, .52, .6, .65][MODEL]; // of body_rad
-OVAL_WTH_RATIO = SNDHOLE_STYLE >= 8 ? [.095, .1055, .118, .0935, .155, .16][MODEL]: // of body_rad
+HOOK_LEN_RATIO = [.45, .485, .55, .52, .5, .4][MODEL]; // of body_rad
+OVAL_WTH_RATIO = SNDHOLE_STYLE >= 8 ? [.09, .119, .132, .145, .132, .128][MODEL]: // of body_rad
                  SNDHOLE_STYLE >= 6 ? [.063, .071, .0841, .0857, .0645, .065][MODEL] : 0; 
+OVAL_PLCMT_RATIO = [.4, .4, .4, .4, .4, .3][MODEL]; // plcmt of oval hole(s)
+OVAL_WIDEN_RATIO = [.6, .6, .6, .6, .6, .6][MODEL]; // widen gap of oval holes(s)
+OVAL_ANGLE = [21, 21, 18, 18, 18, 18][MODEL];
 
 // angle of flare out at shoulder, between 45 - 180, affects girth 
 SHOULDER_FLARE = [NUM_STRS < 4 ? 102: 100, 101, 102, 103, 104, 103.5][MODEL]; 
@@ -151,20 +153,22 @@ SHOULDER_FLARE = [NUM_STRS < 4 ? 102: 100, 101, 102, 103, 104, 103.5][MODEL];
 ENDPIN_RAD = 5+BOT_RND_RAD; // for strap pin or 1/4" pick up jack 
 ENDPIN_DEP = 4;
 ENDPIN_DIP = HEAD_STYLE == 1 ? 55 : // angle pointing downward
-            PICKUP_STYLE == 2 ? 20:
-            FORCE_TAIL_CAVITY || TUNER_STYLE < 2 ? [10, 10, 15, 15, 14, 6][MODEL] : 
-            58;
+            PICKUP_STYLE == 2 ? 45:
+            FORCE_TAIL_CAVITY || TUNER_STYLE < 2 ? [10, 10, 15, 15, 15, 15][MODEL] :
+            45;
+ENDPIN_ROLL = 5; // minor adjustment rolling endpin in-place
+ENDPIN_PUSHIN_RATIO = [0, .1, .15][PICKUP_STYLE]; // minor adjustment how much to push the pin into body
 PICKUP_STEM_LEN = 35;
 
 // Bridge specs
-BRDG_TCK = [5.5, 5.5, 5.5, 5.5, 5.5, 7][MODEL];
+BRDG_TCK = [4.5, 4.5, 5.5, 5.5, 5.5, 6][MODEL];
 SDDL_RAD = 1;
 BRDG_WTH = (HEAD_STYLE==1 && STRTIE_STYLE==1 ? 1.2 : 1)*SCALE_LEN/30; //SCALE_LEN/25;
 BRDG_CARVE_SCALE = [.6, .425, .375, .325, .275, .225][MODEL];
 BRDG_BOTTOM = BRDG_TCK - (HEAD_STYLE==1 ? 
                             (BRDG_WTH -SDDL_RAD)*BRDG_CARVE_SCALE : 
                             2*((BRDG_WTH/2)-SDDL_RAD)*BRDG_CARVE_SCALE);
-BRDG_LEN = 1.05*NUM_STRS*NUT_HOLE_GAP +2*SCALE_LEN*NECK_SLOPE +BRDG_BOTTOM;
+BRDG_LEN = 1.1*NUM_STRS*NUT_HOLE_GAP +2*SCALE_LEN*NECK_SLOPE +BRDG_BOTTOM;
 BRDG_PINHOLE_RAD = MODEL == 0 ? 1.25 : 2.55;
 
 
@@ -214,13 +218,13 @@ PEGS_SHIFT = -HEAD_STEM + [-6,-7,-19,-20,-21,-20][MODEL]; // pegs plcmt
 PEGS_DIVIDE = MODEL < 5 ? .5 : .6; // gap ratio btw L/R rows
 
 // Fretboard specs
-FRETBD_LEN = (MODEL < 5 ? .615 :.66)*SCALE_LEN; //[.66, .66, .66, .695, .695, .695][MODEL]*SCALE_LEN;
+FRETBD_LEN = [.615, .615, .615, .615, .615, .66][MODEL]*SCALE_LEN;
 FRETBD_HD_TCK = [1, 2, 3, 3, 3, 4][MODEL];
-FRETBD_RISE = 1.25; // degree
+FRETBD_RISE = MODEL < 5 ? 1.2 : 1.1; // degree
 FRET_RAD = 1.3; 
 FRETBD_EXTN = [7,8,9,10,11,12][MODEL];
 FRET_INSET = 0.2;
-FRETBD_TOUNGE_WTH = .75*NECK_HEAD_WTH;
+FRETBD_TOUNGE_WTH = .8*NECK_HEAD_WTH;
 FRETBD_TOUNGE_LEN = .75*(FRETBD_LEN -NECK_LEN);
 
 MIN_FRET_WTH = 4.5;
@@ -230,6 +234,12 @@ FSCALE_SUM = accum_mult_n(1, 12);
 F1_LEN = 0.5*SCALE_LEN/FSCALE_SUM;  // half of scale length is 1 octave
 
 BRACE_WTH = 2;
+BRACE_LEN_RATIO = [.9, .9, .9, .9, .9, .9][MODEL]; // brace len as ratio of body rad
+BRACE_X_PLCMT_RATIO = [.3, .3, .3, .4, .4, .4][MODEL]; // front shift as ratio of body rad
+BRACE_X_WIDEN_RATIO = [.4, .4, .4, .4, .4, .4][MODEL]; // wide gap as ratio of body rad
+BRACE_X_MID_RATIO = [.666, .666, .666, .666, .666, .666][MODEL]; // mid point as ratio of brace len
+BRACE_X_ANGLE = [40, 40, 45, 45, 45, 45][MODEL]; // angle of brace from mid-line
+BRACE_SPAN_RATIO = MODEL < 5 ? .333 : .5;
 
 // LOGO
 MODEL_CODE = str(MODEL, HEAD_STYLE, "-", 
@@ -251,6 +261,7 @@ BACK_COVER_RATIO = [.45, .45, .45, .5, .5, .5][MODEL];
 BACK_COVER_SHIFT = [5, 6, 7, 8.5, 9, 2][MODEL];
 BACK_COVER_PLCMT = [30, 43, 52.3, 57, 60, 81.5][MODEL]; 
 BACK_COVER_ANGLE = [2.5, 2.5, 3, 3.25, 1.5, .5][MODEL];
+BACK_COVER_SIDE_SCALE = [.88, .88, .88, .9, .9, .95][MODEL];
 
 // SCREWS
 GEN_SCREW_MDL = "M1.6x12"; 
@@ -258,10 +269,10 @@ GEN_SCREW_HEAD_RAD = 1.6;
 GEN_SCREW_HEAD_TCK = 2;
 BODY_SCREW_MDL = "M1.6x8";
 GUIDE_SCREW_MDL = BODY_SCREW_MDL;
-BRDG_SCREW_MDL = BODY_SCREW_MDL; 
 BACK_SCREW_MDL = "M1.6x3"; 
+BRDG_SCREW_MDL = BACK_SCREW_MDL; 
 NECK_SCREW_MDL = !USE_SCREWS && FORCE_FRETBD_SCREWS ? "M1.6x3" :
-                MODEL < 5 ? GEN_SCREW_MDL : "M2x20";
+                MODEL < 5 ? GEN_SCREW_MDL : "M2x16";
 NECK_SHORT_SCREW_MDL = MODEL < 5 ? "M1.6x3" : "M2x5";
 HEAD_SCREW_MDL = GEN_SCREW_MDL;
 BODY_SCREW_HEAD_RAD = GEN_SCREW_HEAD_RAD;
@@ -300,7 +311,7 @@ SPINE_LEN =
         gourd_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE,FRONT_BACK_RATIO)
         -SPINE_PRE_LEN
 		-(HEAD_STYLE==1 ? BUTT_CHOP +3 : 
-		  TUNER_STYLE < 2 || FORCE_TAIL_CAVITY ? TUNER_CAVITY_CUT -[9,9,6,3,10,40][MODEL] +SPINE_GAP/2 :
+		  TUNER_STYLE < 2 || FORCE_TAIL_CAVITY ? TUNER_CAVITY_CUT -[9,9,6,3,10,50][MODEL] +SPINE_GAP/3 :
 		  10 +SPINE_GAP/2):
     gourd_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE,FRONT_BACK_RATIO)
         -(HEAD_STYLE==1 ? BUTT_CHOP + (!SPINE_TENTED? SPINE_PRE_LEN: 0): 
@@ -336,13 +347,14 @@ BRDG_SET = body_rad(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SHOULDER_FLARE)
             *TOP_SCALE -BRDG_INDENT;
 
 TUNER_CAVITY_DEP = HEAD_STYLE == 1 ? 0 :
+	!FORCE_TAIL_CAVITY && TUNER_STYLE >= 3 ? 0:
     butt_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE,
              FRONT_BACK_RATIO) -TUNER_CAVITY_CUT;
 
 TUNER_FANOUT_RAD = butt_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, 
                     SHOULDER_FLARE, FRONT_BACK_RATIO) -2*max(TOP_RND_RAD, BOT_RND_RAD) -9;
-STR_GUIDE_PLCMT = SCALE_LEN + max(TUNER_CAVITY_DEP, .5*TUNER_FANOUT_RAD);
-STR_GUIDE_SET_OFF_BRDG = [1, 1.5, 2.25, 3, 3.5, 4.5][MODEL];
+STR_GUIDE_PLCMT = SCALE_LEN + max(TUNER_CAVITY_DEP, TUNER_FANOUT_RAD -3*TUNER_TOP_RAD);
+STR_GUIDE_SET_OFF_BRDG = [1, 2, 3, 4, 5, 6][MODEL];
 
 echo(str(
     "TUNER_FANOUT_RAD = ", TUNER_FANOUT_RAD, 

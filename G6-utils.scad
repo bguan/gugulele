@@ -37,16 +37,16 @@ module funnel(fnl_curve_R, fnl_rtop, fnl_atop=0, fnl_abot=90, res=HIRES) {
     }
 }
 
-module halfsphere(rad, is_hires = false) {
+module halfsphere(rad, res = DEFRES) {
     difference() { 
-        sphere(r=rad, $fn=(is_hires ? HIRES : DEFRES));
+        sphere(r=rad, $fn=res);
         translate([-rad,-rad,-2*rad]) cube([2*rad,2*rad,2*rad]);
     }
 }
 
-module quartersphere(rad, is_hires = false) {
+module quartersphere(rad, res = DEFRES) {
     difference() { 
-        halfsphere(rad, is_hires);
+        halfsphere(rad, res);
         translate([-2*rad,-rad,-rad]) cube([2*rad,2*rad,2*rad]);
     }
 }
@@ -60,7 +60,7 @@ module round_rod(rod_len, rod_rad, res = DEFRES) {
     }
 }
 
-function hook_area(hwth, hlen) = .25 *PI *1.5 *hlen *hwth - .25 *PI *hlen *hwth;
+function hook_area(hwth, hlen) = PI*hlen*hwth/12;
 
 module hook(wth=10, len=60, tck=1, is_hires = false) {
     scale([len, wth, tck])

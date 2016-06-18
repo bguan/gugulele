@@ -56,7 +56,7 @@ module torso(layer, front_scale, torso_len, body_rad,
 module butt(layer, back_scale, body_rad, top_scale, bot_scale) {
     scale([back_scale, 1, (layer == 0 ? top_scale : bot_scale)] ) 
     rotate([(layer == 0 ? 0 : 180), 0, 0 ])
-        quartersphere(body_rad, is_hires = true);
+        quartersphere(body_rad, res=HIRES);
 }
 
 
@@ -192,19 +192,11 @@ module body() {
 					torso(0, front_scale, torso_len, body_rad, TOP_SCALE, BOTTOM_SCALE);
 
 				intersection() {
-					// intersect with scaled half cylinder to make sure the join is seamless
+					// intersect with top butt piece to make sure the joint is seamless
 					if (TOP_RND_RAD > 0) {
-						/*
 						translate([NECK_LEN +N_GAP + shoulder_len + torso_len -3*FUSE_SHIFT, 0, -FUSE_SHIFT])
-						difference() {
-							scale([1, 1, TOP_SCALE]) rotate([0, 90, 0]) cylinder(h=BUTT_LEN, r=body_rad, $fn=HIRES);
-							translate([0, -body_rad, -body_rad]) cube([BUTT_LEN, 2*body_rad, body_rad]);
-						}
-						*/
-						translate([NECK_LEN +N_GAP + shoulder_len + torso_len -3*FUSE_SHIFT, 0, -FUSE_SHIFT])
-								butt(0, back_scale*1.05, body_rad, TOP_SCALE, BOTTOM_SCALE); 
+								butt(0, back_scale*1.1, body_rad, TOP_SCALE, BOTTOM_SCALE); 
 					}
-					
 					
 					minkowski() {
 						difference() {
@@ -215,10 +207,11 @@ module body() {
 								translate([N_GAP, 0, -TUNER_BD_TCK -2*FIT_TOL])
 									tail_pegs(is_cut = true);
 							}
-
-							if ((V_GAP > 0 || FORCE_FRETBD_TANG) && F_GAP > 0) {
-								translate([NECK_LEN +N_GAP -FUSE_SHIFT -10 +FIT_TOL +TOP_RND_RAD, -BODY_RAD, -2*FUSE_SHIFT])
-									cube([10, 2*BODY_RAD, BODY_RAD]);
+         
+							// Flat butt cut
+							if (BUTT_CHOP > 0) {
+								translate([body_len +N_GAP, -200, -200]) 
+								cube([400,400,400]);
 							}
 						}
 						if (TOP_RND_RAD > 0) {
@@ -234,7 +227,7 @@ module body() {
 						shoulder_curve_R, shoulder_rtop, shoulder_rbot,
 						shoulder_atop, shoulder_abot,
 						TOP_SCALE, BOTTOM_SCALE);
-				
+					
 				translate([NECK_LEN +N_GAP + shoulder_len -2*FUSE_SHIFT, 0, -V_GAP])
 					torso(1, front_scale, torso_len, body_rad, TOP_SCALE, BOTTOM_SCALE);
 
@@ -252,8 +245,16 @@ module body() {
 								translate([N_GAP, 0, TUNER_UPLIFT -TUNER_BD_TCK +FIT_TOL -V_GAP])
 									tail_pegs(is_cut = true);
 							}
+         
+							// Flat butt cut
+							if (BUTT_CHOP > 0) {
+								translate([body_len +N_GAP, -200, -200]) 
+								cube([400,400,400]);
+							}
 
-							place_pickup(is_cut=true);
+							if (PICKUP_STYLE > 0) {
+								place_pickup(is_cut=true);
+							}
 						}
 						if (BOT_RND_RAD > 0) {
 							scale([1, 1, BOTTOM_SCALE])
@@ -292,8 +293,11 @@ module body() {
                             chamber(chamber_front_scale, chamber_back_scale, chamber_rad);
                         }
                         
-                        translate([NECK_LEN +N_GAP +shoulder_len +torso_len -BACK_COVER_SHIFT, 0, -V_GAP])
-                            back_cover(body_rad, BOTTOM_SCALE, front_scale, back_scale, is_cut=false);
+						difference() {
+							translate([NECK_LEN +N_GAP +shoulder_len +torso_len -BACK_COVER_SHIFT, 0, -V_GAP])
+								back_cover(body_rad, BOTTOM_SCALE, front_scale, back_scale, is_cut=false);
+							place_pickup(is_cut=true);
+						}
                     }
                 }
             }
@@ -305,9 +309,9 @@ module body() {
                     dovetail(is_cut=false);
             }
             
-            if (SHOW_TOP && BRDG_STYLE%2 == 1) {
-                translate([SCALE_LEN +N_GAP, 0, BRDG_SET -.25*BRDG_TCK]) 
-                cube([BRDG_WTH+2, BRDG_LEN+2, .5*BRDG_TCK], center = true);
+            if (SHOW_TOP && BRDG_STYLE == 1) {
+					translate([SCALE_LEN +N_GAP, 0, BRDG_SET -.25*BRDG_TCK]) 
+					cube([BRDG_WTH+2, BRDG_LEN+2, .5*BRDG_TCK], center = true);
             }
 
             if (USE_SCREWS && SHOW_SCREWS && V_GAP > 0) {
@@ -345,7 +349,7 @@ module body() {
         
         // sound port cut
         if (SHOW_BOTTOM && len(search(SNDHOLE_STYLE, [1, 3, 5, 7])) > 0) {
-            echo(str("Sound port area (mm^2): ", sport_area));
+            echo(str("Sound port area (m^2): ", sport_area));
             translate( [NECK_LEN +N_GAP +shoulder_len +(V_GAP >0 ?.7 :.5)*torso_len, 
                        0, -.2*body_rad*BOTTOM_SCALE -V_GAP]) 
             sound_port(.75*body_rad);
@@ -353,29 +357,23 @@ module body() {
         
         // f-hole cut
         if (SHOW_TOP && len(search(SNDHOLE_STYLE, [2, 3])) > 0) {  
-            echo(str("F holes total area (mm^2): ", fholes_area));
+            echo(str("F holes total area (m^2): ", fholes_area));
             fhole(shoulder_len, torso_len, body_rad, hook_wth, hook_len);
             mirror([0,1,0]) fhole(shoulder_len, torso_len, body_rad, hook_wth, hook_len);       
         }
         
         // Top-hole cut
         if (SHOW_TOP && len(search(SNDHOLE_STYLE, [4, 5])) > 0) {  
-            echo(str("Top hole area (mm^2): ", top_hole_area));
+            echo(str("Top hole area (m^2): ", top_hole_area));
             translate( [NECK_LEN +N_GAP +shoulder_len +.15*torso_len, 0, 0]) 
             cylinder(r = TOP_HOLE_RATIO *body_rad, h = body_rad);       
         }
         
         // top oval hole cut
         if (SHOW_TOP && len(search(SNDHOLE_STYLE, [6, 7, 8, 9])) > 0) {  
-            echo(str("Oval holes total area (mm^2): ", harea));
-            translate( [NECK_LEN +N_GAP +shoulder_len +.4*torso_len, 0, 0])
+            echo(str("Oval holes total area (m^2): ", harea));
+            translate( [NECK_LEN +N_GAP +shoulder_len +(1-OVAL_PLCMT_RATIO)*body_rad, 0, 0])
             oval_holes(body_rad, front_scale, oval_len, oval_wth);
-        }
-        
-        // Flat butt cut
-        if (SHOW_TOP || SHOW_BOTTOM) {
-            translate([body_len +N_GAP, -200, -200]) 
-                cube([400,400,400]);
         }
         
         // screw top and bottom of body together
@@ -467,6 +465,22 @@ module body() {
         rotate([0, -FRETBD_RISE, 0]) 
             deco_frets_from_nut(F1_LEN, F1_LEN / SEMI_RATIO, 1, true);
     
+	// under soundboard reinforcement for bridge
+	if (SHOW_TOP && BRDG_STYLE == 2) {
+		difference() {
+			translate([SCALE_LEN +N_GAP, 0, BRDG_SET -.15*BRDG_TCK]) 
+			scale([BRDG_WTH*2.5, 1, .5*BRDG_TCK])
+			round_rod(BRDG_LEN, .3);
+
+			// slice top half off
+			translate([SCALE_LEN +N_GAP, 0, BRDG_SET]) 
+			cube([BRDG_WTH*1.5, BRDG_LEN*1.5, .25*BRDG_TCK], center = true);
+
+			// bridge foot print incl. screw holes
+            translate([SCALE_LEN +N_GAP, 0, BRDG_SET]) 
+                bridge(is_cut = true);
+		}
+	}
 }
 
 
@@ -795,11 +809,11 @@ module bridge(is_cut = false) {
             translate([0, brdg_len/2, BRDG_TCK]) 
             rotate([90,0,0]) cylinder(h=brdg_len, r=SDDL_RAD);
 
-			if (!is_cut && BRDG_STYLE >= 2) {
-				// string tie block
-				translate([-SDDL_RAD -cut_adj, -brdg_len/2 -cut_adj, -cut_adj]) 
-				cube([BRDG_WTH +2*cut_adj, brdg_len +2*cut_adj, BRDG_TCK +cut_adj]);
-			}
+//			if (!is_cut && BRDG_STYLE >= 2) {
+//				// string tie block
+//				translate([-SDDL_RAD -cut_adj, -brdg_len/2 -cut_adj, -cut_adj]) 
+//				cube([BRDG_WTH +2*cut_adj, brdg_len +2*cut_adj, BRDG_TCK +cut_adj]);
+//			}
         }
          
         if ((HEAD_STYLE==0 || HEAD_STYLE==2) && !is_cut) {
@@ -881,7 +895,7 @@ module bridge(is_cut = false) {
 
 module strings_guide(is_cut = false) {
     rad = STR_GUIDE_ROD_RAD+(is_cut? FIT_TOL :0);
-    ht = rad +3.5*STR_HOLE_RAD +STR_GUIDE_SET_OFF_BRDG;
+    ht = rad +STR_HOLE_RAD +STR_GUIDE_SET_OFF_BRDG;
     wth = NUM_STRS*NUT_HOLE_GAP +2*NECK_SLOPE*STR_GUIDE_PLCMT -2*rad;   
     gap = wth/(NUM_STRS-1);
     difference() {   
@@ -983,7 +997,7 @@ module deco_frets_from_nut(last_offset,last_fwth,n,
         } else if (len(search(n, [12, 24])) > 0 && n >= from) {
             translate([last_offset - 0.5*last_fwth, 0, FRETBD_HD_TCK -cut_dep]) 
             if (use_screw) {
-                df = (SPINE_STYLE == 0 || SPINE_GAP == 0? 6: 8);
+                df = 6;
                 for (lr = [df, 0, -df]) {
                     translate([0, lr*NECK_SCREW_HEAD_RAD , 
                         cut_dep-NECK_SCREW_HEAD_TCK]) {
@@ -999,7 +1013,7 @@ module deco_frets_from_nut(last_offset,last_fwth,n,
                     cube([3, 16, cut_dep + (is_cut ? 0.1 : 0)]);
             }
         } else if (F_GAP > 0 && n == 1 && n >= from && use_screw && !FORCE_FRETBD_SCREWS) {
-            df = (SPINE_STYLE == 0 || SPINE_GAP == 0? 6: 8);
+            df = 6;
             translate([last_offset - 0.5*last_fwth, 0, FRETBD_HD_TCK -cut_dep]) 
             for (lr = [df, -df]) {
                 translate([0, lr*NECK_SCREW_HEAD_RAD, cut_dep-NECK_SCREW_HEAD_TCK]) {
@@ -1033,18 +1047,26 @@ module xbrace(body_rad, butt_len) {
     intersection() {
         union() {
             for (lr = [1, -1]) {
-                translate([N_GAP +SCALE_LEN, lr*.6*body_rad, SPINE_RAISE +3.5*rod_vrad])
-                rotate([0, -CHAMBER_TILT, lr*60])
-                translate([-.85*butt_len, -.5, 0])
-                scale([1, 1, rod_vrad/BRACE_WTH])
-                round_rod(2*body_rad, BRACE_WTH);
-            }
+                translate([N_GAP +SCALE_LEN -BRACE_X_PLCMT_RATIO*body_rad, 
+					lr*(1-BRACE_X_WIDEN_RATIO)*body_rad, 
+					SPINE_RAISE +(MODEL < 5 ? 5 :4.5)*rod_vrad])
+					rotate([0, 0, lr*(90-BRACE_X_ANGLE)])
+					translate([-BRACE_X_MID_RATIO*body_rad*BRACE_LEN_RATIO, -.5, 0])
+					scale([1, 4, rod_vrad/BRACE_WTH])
+						round_rod(body_rad*BRACE_LEN_RATIO, BRACE_WTH);
+				}
         }
         
         translate([N_GAP, 0, -FUSE_SHIFT])
 		difference() {
 			gourd([0], NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE, 
 				FRONT_BACK_RATIO, TOP_SCALE, BOTTOM_SCALE);
+
+            if (B_GAP > 0) {
+                translate([SCALE_LEN, 0, BRDG_SET]) 
+                    bridge(is_cut = true);
+            }
+			
 			// Flat butt cut
 			if (HEAD_STYLE==1) {
 				translate([BODY_LEN, -200, -200]) cube([400,400,400]);
@@ -1059,12 +1081,12 @@ module tbrace(body_rad, butt_len) {
         union() {
             translate([N_GAP +SCALE_LEN -.2*body_rad, 0, 3.5*rod_vrad])
             rotate([0, 0, 90])
-            scale([1, 1, rod_vrad/BRACE_WTH])
-                round_rod(body_rad, BRACE_WTH);
+            scale([1, 4, rod_vrad/BRACE_WTH])
+                round_rod(body_rad*BRACE_LEN_RATIO/4, BRACE_WTH);
             
             translate([N_GAP +SCALE_LEN, 0, 3.5*rod_vrad])
-            scale([1, 2, rod_vrad/BRACE_WTH])
-                round_rod(body_rad/3, BRACE_WTH);
+            scale([1, 4, rod_vrad/BRACE_WTH])
+                round_rod(body_rad*BRACE_SPAN_RATIO/2, BRACE_WTH);
         }
         
         translate([N_GAP, 0, -FUSE_SHIFT])
