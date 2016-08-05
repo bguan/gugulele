@@ -1,4 +1,4 @@
-///////////////////////// 
+//////////////////////// 
 // Gugulele 6 Body Parts 
 //////////////////////////
 
@@ -204,7 +204,7 @@ module body() {
 								butt(0, back_scale, body_rad -TOP_RND_RAD, TOP_SCALE, BOTTOM_SCALE); 
 
 							if (HEAD_STYLE != 1) { 
-								translate([N_GAP, 0, -TUNER_BD_TCK -2*FIT_TOL])
+								translate([N_GAP, 0, TUNER_UPLIFT -TUNER_BD_TCK -2*FIT_TOL])
 									tail_pegs(is_cut = true);
 							}
          
@@ -260,6 +260,12 @@ module body() {
 							scale([1, 1, BOTTOM_SCALE])
 							sphere(r=BOT_RND_RAD, $fn=LORES);
 						}
+					}
+
+					// shave away extra top material from rounding edges in bottom half
+					if (BOT_RND_RAD > 0) {
+						translate([N_GAP, -500, -V_GAP])
+						cube([1000, 1000, 100]);
 					}
 
 					translate([N_GAP, 0, TUNER_UPLIFT -TUNER_BD_TCK +FIT_TOL -V_GAP])
@@ -339,7 +345,7 @@ module body() {
         if (SHOW_TOP && F_GAP+N_GAP > 0) {
             if (V_GAP > 0 || FORCE_FRETBD_TANG) {
                 translate([NECK_LEN +N_GAP -FUSE_SHIFT, 
-                            -FRETBD_TOUNGE_WTH/2 -FIT_TOL, 0]) 
+                            -FRETBD_TOUNGE_WTH/2 -FIT_TOL, -FIT_TOL]) 
                     cube([FRETBD_TOUNGE_LEN +FIT_TOL, 
                           FRETBD_TOUNGE_WTH +2*FIT_TOL, body_rad]);
             } else {
@@ -395,19 +401,22 @@ module body() {
         }
         
         // screw fretboard to neck
-        if (SHOW_FRETBD && USE_SCREWS && V_GAP + F_GAP + N_GAP > 0) 
-            translate([0, 0, -V_GAP]) {    
-                rotate([0, -FRETBD_RISE, 0]) 
-                deco_frets_from_nut(F1_LEN, F1_LEN / SEMI_RATIO, 
-                    1, true, to=(N_GAP > 0 ? 14 : 24));
-            
-                if (N_GAP > 0) {
-                    rotate([0, -FRETBD_RISE, 0]) 
-                    translate([N_GAP, 0, 0]) 
-                    deco_frets_from_nut(F1_LEN, F1_LEN / SEMI_RATIO, 
-                        1, true, from=12);
-                }
-            }   
+        if ((SHOW_NECK || SHOW_TOP) && USE_SCREWS && V_GAP + F_GAP + N_GAP > 0) {
+			for(dz = (V_GAP > 0 ? [0, -V_GAP] :[0])) {
+				translate([0, 0, dz]) {    
+					rotate([0, -FRETBD_RISE, 0]) 
+					deco_frets_from_nut(F1_LEN, F1_LEN / SEMI_RATIO, 
+						1, true, to=(N_GAP > 0 ? 14 : 24));
+				
+					if (N_GAP > 0) {
+						rotate([0, -FRETBD_RISE, 0]) 
+						translate([N_GAP, 0, 0]) 
+						deco_frets_from_nut(F1_LEN, F1_LEN / SEMI_RATIO, 
+							1, true, from=12);
+					}
+				}   
+			}
+		}
         
         // screw head to neck 
         if ((SHOW_NECK || SHOW_HEAD) && USE_SCREWS && H_GAP > 0) {    
@@ -895,7 +904,7 @@ module bridge(is_cut = false) {
 
 module strings_guide(is_cut = false) {
     rad = STR_GUIDE_ROD_RAD+(is_cut? FIT_TOL :0);
-    ht = rad +STR_HOLE_RAD +STR_GUIDE_SET_OFF_BRDG;
+    ht = rad +2*STR_HOLE_RAD +STR_GUIDE_SET_OFF_BRDG;
     wth = NUM_STRS*NUT_HOLE_GAP +2*NECK_SLOPE*STR_GUIDE_PLCMT -2*rad;   
     gap = wth/(NUM_STRS-1);
     difference() {   
@@ -963,7 +972,7 @@ module deco_frets_from_nut(last_offset,last_fwth,n,
 
     if (last_offset<FRETBD_LEN+last_fwth && last_fwth > MIN_FRET_WTH && n < to) {
         cut_dep = 0.1;
-        if (len(search(n, [3, 7, 10, 15, 19, 22])) > 0 && n >= from) {
+        if (len(search(n, [3, 7, NUM_STRS < 6 ? 10 : 9, 15, 19, NUM_STRS < 6 ? 22 :21])) > 0 && n >= from) {
             translate([last_offset - 0.5*last_fwth, 0, FRETBD_HD_TCK -cut_dep]) 
             if (use_screw) {
                 translate([0, 0, cut_dep-NECK_SCREW_HEAD_TCK]) {
@@ -1042,7 +1051,7 @@ module strings() {
 
 
 module xbrace(body_rad, butt_len) {    
-    rod_vrad = .25*body_rad*TOP_SCALE;
+    rod_vrad = .23*body_rad*TOP_SCALE;
     
     intersection() {
         union() {
@@ -1052,7 +1061,7 @@ module xbrace(body_rad, butt_len) {
 					SPINE_RAISE +(MODEL < 5 ? 5 :4.5)*rod_vrad])
 					rotate([0, 0, lr*(90-BRACE_X_ANGLE)])
 					translate([-BRACE_X_MID_RATIO*body_rad*BRACE_LEN_RATIO, -.5, 0])
-					scale([1, 4, rod_vrad/BRACE_WTH])
+					scale([1, 4, 2*rod_vrad/BRACE_WTH])
 						round_rod(body_rad*BRACE_LEN_RATIO, BRACE_WTH);
 				}
         }
@@ -1076,16 +1085,16 @@ module xbrace(body_rad, butt_len) {
 }
 
 module tbrace(body_rad, butt_len) {    
-    rod_vrad = .225*body_rad*TOP_SCALE;
+    rod_vrad = .23*body_rad*TOP_SCALE;
     intersection() {
         union() {
             translate([N_GAP +SCALE_LEN -.2*body_rad, 0, 3.5*rod_vrad])
             rotate([0, 0, 90])
-            scale([1, 4, rod_vrad/BRACE_WTH])
+            scale([1, 4, 1.5*rod_vrad/BRACE_WTH])
                 round_rod(body_rad*BRACE_LEN_RATIO/4, BRACE_WTH);
             
             translate([N_GAP +SCALE_LEN, 0, 3.5*rod_vrad])
-            scale([1, 4, rod_vrad/BRACE_WTH])
+            scale([1, 4, 1.5*rod_vrad/BRACE_WTH])
                 round_rod(body_rad*BRACE_SPAN_RATIO/2, BRACE_WTH);
         }
         

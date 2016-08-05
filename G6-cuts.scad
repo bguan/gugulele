@@ -541,7 +541,7 @@ module place_pickup(is_cut = true) {
 		dy = (BODY_RAD*sin(ENDPIN_DIP))*(1-ENDPIN_PUSHIN_RATIO);
 		dz = 4*ENDPIN_RAD;
 
-        translate([SCALE_LEN+dx, dy, -dz -V_GAP])
+        translate([SCALE_LEN+dx+N_GAP, dy, -dz -V_GAP])
         rotate([0, 0, ENDPIN_DIP])  
         rotate([0, roll, 0])  
         pickup(is_cut = true, rndrad, rimdep);
@@ -552,7 +552,7 @@ module place_pickup(is_cut = true) {
 		dx = bot_rad*cos(ENDPIN_DIP);
 		dz = (1-ENDPIN_PUSHIN_RATIO)*BODY_RAD*sin(ENDPIN_DIP)*BOTTOM_SCALE;
 
-		translate([SCALE_LEN+dx, 0, -dz -V_GAP])
+		translate([SCALE_LEN+dx+N_GAP, 0, -dz -V_GAP])
 		rotate([0, ENDPIN_DIP, 0])
 		translate([rndrad, 0, 0])
         rotate([0, ENDPIN_ROLL, 0])  

@@ -41,7 +41,7 @@ SKIP_ASSEMBLY = false;
 // High level params: Model specific configs - expect frequent change
 MODEL = 0;
 HEAD_STYLE = 0; // 0 headless  1 headed  2 deco-headless
-TUNER_STYLE = 0; // 0 hole 1 sealed geared 2 friction 3 banjo planetary 4 gotoh UPT  
+TUNER_STYLE = 0; // 0 hole 1 sealed geared 2 friction 3 banjo planetary 4 gotoh UPTL  
 SPINE_STYLE = 0;  // 0 none 1 neck only 2 whole body 3 angle thru body
 SNDHOLE_STYLE = 0; // 0.none 1.side 2.f-hole 3.side+F 4.top 5.side+top 
                    // 6.double ovals 7.side+double oval 8. single oval 9. single oval+side
@@ -119,7 +119,7 @@ BRDG_INDENT = [NUM_STRS/8 + .2, 0, NUM_STRS/8][BRDG_STYLE];
 CHAMBER_BODY_RATIO = [.9, .92, .94, .96, .97, .92][MODEL]; 
 CHAMBER_TOP_SCALE = .75*TOP_SCALE; 
 CHAMBER_BOTTOM_SCALE = 1*BOTTOM_SCALE;
-CHAMBER_UP_SHIFT = [1, 1.5, 1.7, 1.9, 2.2, 2.7][MODEL]; 
+CHAMBER_UP_SHIFT = [1, 1.5, 1.7, 1.9, 2.2, 2.3][MODEL]; 
 CHAMBER_FRONT_SHIFT = [10, 6, 6, 7, 8, 8][MODEL]; //[10, 4, 5, 6.5, 7.5, 10][MODEL]; 
 CHAMBER_TILT = .5; 
 CHAMBER_BACK_RATIO = HEAD_STYLE == 1 ? .9 : 
@@ -139,7 +139,7 @@ TOP_HOLE_RATIO = [.1874, .1975, .215, .217, .22, .2][MODEL]; // of body_rad
 OVAL_LEN_RATIO = SNDHOLE_STYLE >= 8 ? [.3, .3, .333, .39, .39, .4][MODEL] :
 				 SNDHOLE_STYLE >= 6 ? .25 : 0; // of body_rad
 HOOK_WTH_RATIO = .1; // of body_rad
-HOOK_LEN_RATIO = [.45, .485, .55, .52, .5, .4][MODEL]; // of body_rad
+HOOK_LEN_RATIO = [.45, .485, .55, .52, .5, .405][MODEL]; // of body_rad
 OVAL_WTH_RATIO = SNDHOLE_STYLE >= 8 ? [.09, .119, .132, .145, .132, .128][MODEL]: // of body_rad
                  SNDHOLE_STYLE >= 6 ? [.063, .071, .0841, .0857, .0645, .065][MODEL] : 0; 
 OVAL_PLCMT_RATIO = [.4, .4, .4, .4, .4, .3][MODEL]; // plcmt of oval hole(s)
@@ -156,7 +156,7 @@ ENDPIN_DIP = HEAD_STYLE == 1 ? 55 : // angle pointing downward
             PICKUP_STYLE == 2 ? 45:
             FORCE_TAIL_CAVITY || TUNER_STYLE < 2 ? [10, 10, 15, 15, 15, 15][MODEL] :
             45;
-ENDPIN_ROLL = 5; // minor adjustment rolling endpin in-place
+ENDPIN_ROLL = [0, 5, 15][PICKUP_STYLE]; // minor adjustment rolling endpin in-place
 ENDPIN_PUSHIN_RATIO = [0, .1, .15][PICKUP_STYLE]; // minor adjustment how much to push the pin into body
 PICKUP_STEM_LEN = 35;
 
@@ -186,7 +186,7 @@ NECK_HEAD_WTH = NUM_STRS * NUT_HOLE_GAP;
 NECK_JOINT_LEN = .1*NECK_LEN; 
 NECK_JOINT_WTH1 = .8 *NUM_STRS *NUT_HOLE_GAP;
 NECK_JOINT_WTH2 = V_GAP +F_GAP > 0 ? NECK_JOINT_WTH1*1.1 : NECK_JOINT_WTH1;
-NECK_JOINT_TCK = [6, 7, 8.5, 9.5, 10.5, 12][MODEL];
+NECK_JOINT_TCK = [6, 7, 8.5, 9.5, 10.5, 10][MODEL];
 
 // Derived params
 BODY_RAD = body_rad(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SHOULDER_FLARE);
@@ -204,8 +204,8 @@ TUNER_BOT_RAD = [5, 10, 11, 8.5, 7.5][TUNER_STYLE] + BOT_RND_RAD;
 TUNER_BOT_LEN = [23, 8, 9, 23, 14][TUNER_STYLE]; 
 TUNER_BTN_RAD = [11, 11, 11, 11, 9.5][TUNER_STYLE] + BOT_RND_RAD; 
 TUNER_GAP = max(25, max(TUNER_TOP_RAD, TUNER_BOT_RAD, TUNER_BTN_RAD)*2.1); 
-TUNER_UPLIFT = HEAD_STYLE == 1 ? [.5,2.5,3,3,3,3][MODEL] : V_GAP == 0 && TOP_RND_RAD != BOT_RND_RAD ? 0 : 1;
-TUNER_BD_TCK = [10, 13, 10, 14, 10][TUNER_STYLE]; 
+TUNER_UPLIFT = HEAD_STYLE == 1 ? [.5,2.5,3,3,3,3][MODEL] : V_GAP == 0 ? 0 : 1.5;
+TUNER_BD_TCK = [10, 13, 10, 14, 13][TUNER_STYLE]; 
 HEAD_TUNER_WIDEN = 0;
 STR_GUIDE_ROD_RAD = 2.25;
 
@@ -325,7 +325,7 @@ HEAD_SLICE = [[1, 5, .25, .81, 1.4][TUNER_STYLE],
 HEADLESS_STRING_ANGLE = [ 
     [36, 44, 44, 44, 44, 49][MODEL], 0, 
     [35, 29, 28, 27, 26, 29][MODEL] +(HEAD_POKED ?1 :0) 
-    -(F_GAP+V_GAP+H_GAP+N_GAP>0 ? 0: 9)
+    -(F_GAP+V_GAP+H_GAP+N_GAP>0 ? 6: 9)
    ][HEAD_STYLE]; 
 F0_RAD = 1.75;
 HEADLESS_TOP_GROOVE_RAD = [1.5*F0_RAD, 0, .666*HEAD_MIDLEN][HEAD_STYLE];
@@ -353,8 +353,8 @@ TUNER_CAVITY_DEP = HEAD_STYLE == 1 ? 0 :
 
 TUNER_FANOUT_RAD = butt_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, 
                     SHOULDER_FLARE, FRONT_BACK_RATIO) -2*max(TOP_RND_RAD, BOT_RND_RAD) -9;
-STR_GUIDE_PLCMT = SCALE_LEN + max(TUNER_CAVITY_DEP, TUNER_FANOUT_RAD -3*TUNER_TOP_RAD);
-STR_GUIDE_SET_OFF_BRDG = [1, 2, 3, 4, 5, 6][MODEL];
+STR_GUIDE_PLCMT = SCALE_LEN + max(TUNER_CAVITY_DEP, TUNER_FANOUT_RAD -3*TUNER_TOP_RAD) -NUM_STRS;
+STR_GUIDE_SET_OFF_BRDG = [1.5, 2, 2.5, 3, 3.5, 4][MODEL];
 
 echo(str(
     "TUNER_FANOUT_RAD = ", TUNER_FANOUT_RAD, 
