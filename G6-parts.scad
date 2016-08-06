@@ -168,7 +168,7 @@ module body() {
                  [NECK_LEN +N_GAP +.5*shoulder_len, body_rad*.26], 
                  [NECK_LEN +N_GAP +.95*shoulder_len, body_rad*.54], 
                  [NECK_LEN +N_GAP +shoulder_len +torso_len*.34, body_rad*.82 ],
-                 [NECK_LEN +N_GAP +shoulder_len +torso_len, body_rad*.955],
+                 [NECK_LEN +N_GAP +shoulder_len +torso_len, body_rad*.965],
                  [body_len +N_GAP -10, body_rad*.55],
                  [body_len +N_GAP -3, body_rad*.15] 
                 ];
