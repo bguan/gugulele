@@ -478,7 +478,7 @@ module body() {
 	if (SHOW_TOP && BRDG_STYLE == 2) {
 		difference() {
 			translate([SCALE_LEN +N_GAP, 0, BRDG_SET -.15*BRDG_TCK]) 
-			scale([BRDG_WTH*2.5, 1, .5*BRDG_TCK])
+			scale([BRDG_WTH*3, 1, .6666666*BRDG_TCK])
 			round_rod(BRDG_LEN, .3);
 
 			// slice top half off

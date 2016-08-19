@@ -186,7 +186,7 @@ NECK_HEAD_WTH = NUM_STRS * NUT_HOLE_GAP;
 NECK_JOINT_LEN = .1*NECK_LEN; 
 NECK_JOINT_WTH1 = .8 *NUM_STRS *NUT_HOLE_GAP;
 NECK_JOINT_WTH2 = V_GAP +F_GAP > 0 ? NECK_JOINT_WTH1*1.1 : NECK_JOINT_WTH1;
-NECK_JOINT_TCK = [6, 7, 8.5, 9.5, 10.5, 10][MODEL];
+NECK_JOINT_TCK = [6, 7, 7.5, 8, 8.5, 9][MODEL];
 
 // Derived params
 BODY_RAD = body_rad(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SHOULDER_FLARE);
@@ -204,13 +204,13 @@ TUNER_BOT_RAD = [5, 10, 11, 8.5, 7.5][TUNER_STYLE] + BOT_RND_RAD;
 TUNER_BOT_LEN = [23, 8, 9, 23, 14][TUNER_STYLE]; 
 TUNER_BTN_RAD = [11, 11, 11, 11, 9.5][TUNER_STYLE] + BOT_RND_RAD; 
 TUNER_GAP = max(25, max(TUNER_TOP_RAD, TUNER_BOT_RAD, TUNER_BTN_RAD)*2.1); 
-TUNER_UPLIFT = HEAD_STYLE == 1 ? [.5,2.5,3,3,3,3][MODEL] : V_GAP == 0 ? 0 : 1.5;
+TUNER_UPLIFT = HEAD_STYLE == 1 ? [.5,2.5,3,3,3,3][MODEL] : 1;
 TUNER_BD_TCK = [10, 13, 10, 14, 13][TUNER_STYLE]; 
 HEAD_TUNER_WIDEN = 0;
 STR_GUIDE_ROD_RAD = 2.25;
 
-ANCHORPIN_RAD =  [0, 1, 0, .5, .5][TUNER_STYLE]; 
-ANCHORPIN_OFFSET = [0, 11, 0, 6.8, 7][TUNER_STYLE]; 
+ANCHORPIN_RAD =  [0, 1, 0, .4, .4][TUNER_STYLE]; 
+ANCHORPIN_OFFSET = [0, 11, 0, 7, 7][TUNER_STYLE]; 
 ANCHORPIN_DEP = [0, 8, 0, 3.5, 3][TUNER_STYLE];
 STR_HOLE_FROM_COUNTER = [15, 22.5, 15, 23, 17.5][TUNER_STYLE];
 ANCHORPIN_ANGLE = [45, 45, 60][HEAD_STYLE]; //45;
@@ -234,11 +234,11 @@ FSCALE_SUM = accum_mult_n(1, 12);
 F1_LEN = 0.5*SCALE_LEN/FSCALE_SUM;  // half of scale length is 1 octave
 
 BRACE_WTH = 2;
-BRACE_LEN_RATIO = [.9, .9, .9, .9, .9, .9][MODEL]; // brace len as ratio of body rad
-BRACE_X_PLCMT_RATIO = [.3, .3, .3, .4, .4, .4][MODEL]; // front shift as ratio of body rad
+BRACE_LEN_RATIO = [.7, .7, .7, .7, .7, .7][MODEL]; // brace len as ratio of body rad
+BRACE_X_PLCMT_RATIO = [.4, .4, .4, .5, .5, .5][MODEL]; // front shift as ratio of body rad
 BRACE_X_WIDEN_RATIO = [.4, .4, .4, .4, .4, .4][MODEL]; // wide gap as ratio of body rad
 BRACE_X_MID_RATIO = [.666, .666, .666, .666, .666, .666][MODEL]; // mid point as ratio of brace len
-BRACE_X_ANGLE = [40, 40, 45, 45, 45, 45][MODEL]; // angle of brace from mid-line
+BRACE_X_ANGLE = [40, 40, 40, 40, 40, 40][MODEL]; // angle of brace from mid-line
 BRACE_SPAN_RATIO = MODEL < 5 ? .333 : .5;
 
 // LOGO
@@ -352,7 +352,10 @@ TUNER_CAVITY_DEP = HEAD_STYLE == 1 ? 0 :
              FRONT_BACK_RATIO) -TUNER_CAVITY_CUT;
 
 TUNER_FANOUT_RAD = butt_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, 
-                    SHOULDER_FLARE, FRONT_BACK_RATIO) -2*max(TOP_RND_RAD, BOT_RND_RAD) -9;
+                    SHOULDER_FLARE, FRONT_BACK_RATIO) 
+					-max(TUNER_TOP_RAD, TUNER_BOT_RAD) 
+					-max(TOP_RND_RAD, BOT_RND_RAD)
+                    -.5;
 STR_GUIDE_PLCMT = SCALE_LEN + max(TUNER_CAVITY_DEP, TUNER_FANOUT_RAD -3*TUNER_TOP_RAD) -NUM_STRS;
 STR_GUIDE_SET_OFF_BRDG = [1.5, 2, 2.5, 3, 3.5, 4][MODEL];
 

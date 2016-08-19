@@ -174,8 +174,10 @@ module peg(anchor_dx = 0, anchor_dy = 0, is_cut = true) {
 			}
             
             // main shaft
-            translate([0,0,-TUNER_BD_TCK -1 +FUSE_SHIFT]) 
-            cylinder(h=TUNER_BD_TCK +1, r=TUNER_HOLE_RAD +cut_adj, $fn=peg_res);
+            translate([0,0,-TUNER_BD_TCK -FIT_TOL]) 
+            cylinder(h=TUNER_BD_TCK +2*FIT_TOL, 
+					r=TUNER_HOLE_RAD +cut_adj +max(top_rnd_rad, bot_rnd_rad), 
+					$fn=peg_res);
             
             if (HEAD_STYLE == 1 || len(search(TUNER_STYLE, [0, 1])) > 0 || FORCE_TAIL_CAVITY) {
                 // bottom counter hole
@@ -184,22 +186,23 @@ module peg(anchor_dx = 0, anchor_dy = 0, is_cut = true) {
                 
                 // turning button
                 translate([0,0,-3*TUNER_BD_TCK -TUNER_BOT_LEN +3*FUSE_SHIFT]) 
-                    cylinder(h=2*TUNER_BD_TCK, r=TUNER_BTN_RAD +cut_adj, $fn=peg_res);
+                    cylinder(h=2*TUNER_BD_TCK, r=TUNER_BTN_RAD, $fn=peg_res);
             } else {
-                // bottom counter hole
-				minkowski() {
-					translate([0,0,-TUNER_BD_TCK -TUNER_BOT_LEN +2*FUSE_SHIFT])
-                    	cylinder(r2=TUNER_BOT_RAD +(bot_rnd_rad > 0 ? 0 : cut_adj) , 
-								r1=TUNER_BTN_RAD +(bot_rnd_rad > 0 ? 0 : cut_adj), 
-								h=TUNER_BOT_LEN -bot_rnd_rad, $fn=peg_res);
-					if (bot_rnd_rad > 0) sphere(r=bot_rnd_rad, $fn=LORES);
-				}
-                
-                // turning button
-                translate([0,0,-4*TUNER_BD_TCK -TUNER_BOT_LEN +5*FUSE_SHIFT]) 
-                    cylinder(h=3*TUNER_BD_TCK, 
-							r=TUNER_BTN_RAD +(bot_rnd_rad > 0 ? bot_rnd_rad :cut_adj), 
+				hull() {
+					// bottom counter hole
+					minkowski() {
+						translate([0,0,-TUNER_BD_TCK -TUNER_BOT_LEN +2*FUSE_SHIFT])
+							cylinder(r2=TUNER_BOT_RAD -bot_rnd_rad,
+									r1=TUNER_BTN_RAD -bot_rnd_rad,
+									h=TUNER_BOT_LEN -bot_rnd_rad, $fn=peg_res);
+						if (bot_rnd_rad > 0) sphere(r=bot_rnd_rad, $fn=LORES);
+					}
+					// turning button
+					translate([0,0,-4*TUNER_BD_TCK -TUNER_BOT_LEN +5*FUSE_SHIFT]) 
+						cylinder(h=3*TUNER_BD_TCK, 
+							r=TUNER_BTN_RAD,
 							$fn=peg_res);
+				}
             }
         }
         if (!is_cut) {
