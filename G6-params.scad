@@ -58,6 +58,7 @@ B_GAP = 0;  // bridge gap to body
 F_GAP = 0;  // fretboard gap, between neck and board
 V_GAP = 0;  // vertical gap between top and bottom half of uke
 N_GAP = 0;  // neck gap to body
+S_GAP = 0;  // shoulder gap to body
 G_GAP = 0;  // body gap to string_guide
 H_GAP = 0;  // head gap to string_guide
 C_GAP = 0;  // cover on the back
@@ -114,6 +115,7 @@ TOP_SCALE = 1/9;
 HEAD_TOP_SCALE = 1/5;
 BOTTOM_SCALE = [NUM_STRS < 4 ? 3/4 : 2/3, 2/3, 2/3, 2/3, 2/3, 2/3][MODEL]; 
 FRONT_BACK_RATIO = 2;
+SHOULDER_SPLIT_RATIO = .33; // only when S_GAP > 0 to determine front vs back
 HEAD_FRONT_BACK_RATIO = [0, 1.5, 2][HEAD_STYLE];
 BRDG_INDENT = [NUM_STRS/8 + .2, 0, NUM_STRS/8][BRDG_STYLE];
 CHAMBER_BODY_RATIO = [.9, .92, .94, .96, .97, .92][MODEL]; 
@@ -153,10 +155,10 @@ SHOULDER_FLARE = [NUM_STRS < 4 ? 102: 100, 101, 102, 103, 104, 103.5][MODEL];
 ENDPIN_RAD = 5+BOT_RND_RAD; // for strap pin or 1/4" pick up jack 
 ENDPIN_DEP = 4;
 ENDPIN_DIP = HEAD_STYLE == 1 ? 55 : // angle pointing downward
-            PICKUP_STYLE == 2 ? 45:
+            PICKUP_STYLE == 2 ? [60, 55, 50, 45, 45, 45][MODEL]:
             FORCE_TAIL_CAVITY || TUNER_STYLE < 2 ? [10, 10, 15, 15, 15, 15][MODEL] :
             45;
-ENDPIN_ROLL = [0, 5, 15][PICKUP_STYLE]; // minor adjustment rolling endpin in-place
+ENDPIN_ROLL = [0, 5, 10+2*MODEL][PICKUP_STYLE]; // minor adjustment rolling endpin in-place
 ENDPIN_PUSHIN_RATIO = [0, .1, .15][PICKUP_STYLE]; // minor adjustment how much to push the pin into body
 PICKUP_STEM_LEN = 35;
 
@@ -184,7 +186,7 @@ HEAD_MIDLEN = HEAD_STEM + [0, 5+ 2*MODEL +floor(NUM_STRS/2)*20 +(NUM_STRS%2)*15,
 NECK_LEN = .4*SCALE_LEN;  
 NECK_HEAD_WTH = NUM_STRS * NUT_HOLE_GAP;
 NECK_JOINT_LEN = .1*NECK_LEN; 
-NECK_JOINT_WTH1 = .8 *NUM_STRS *NUT_HOLE_GAP;
+NECK_JOINT_WTH1 = .83 *NUM_STRS *NUT_HOLE_GAP;
 NECK_JOINT_WTH2 = V_GAP +F_GAP > 0 ? NECK_JOINT_WTH1*1.1 : NECK_JOINT_WTH1;
 NECK_JOINT_TCK = [6, 7, 7.5, 8, 8.5, 9][MODEL];
 
@@ -224,8 +226,8 @@ FRETBD_RISE = MODEL < 5 ? 1.2 : 1.1; // degree
 FRET_RAD = 1.3; 
 FRETBD_EXTN = [7,8,9,10,11,12][MODEL];
 FRET_INSET = 0.2;
-FRETBD_TOUNGE_WTH = .8*NECK_HEAD_WTH;
-FRETBD_TOUNGE_LEN = .75*(FRETBD_LEN -NECK_LEN);
+FRETBD_TOUNGE_WTH = .85*NECK_HEAD_WTH;
+FRETBD_TOUNGE_LEN = .85*(FRETBD_LEN -NECK_LEN);
 
 MIN_FRET_WTH = 4.5;
 SEMI_RATIO = pow(2, 1/12); // ratio of each semitone to next is 2^(1/12)
@@ -233,10 +235,10 @@ function accum_mult_n(x, n) = n<=0 ? 0: x + accum_mult_n(x/SEMI_RATIO,n-1);
 FSCALE_SUM = accum_mult_n(1, 12); 
 F1_LEN = 0.5*SCALE_LEN/FSCALE_SUM;  // half of scale length is 1 octave
 
-BRACE_WTH = 2;
-BRACE_LEN_RATIO = [.7, .7, .7, .7, .7, .7][MODEL]; // brace len as ratio of body rad
-BRACE_X_PLCMT_RATIO = [.4, .4, .4, .5, .5, .5][MODEL]; // front shift as ratio of body rad
-BRACE_X_WIDEN_RATIO = [.4, .4, .4, .4, .4, .4][MODEL]; // wide gap as ratio of body rad
+BRACE_WTH = [1, 1.5, 1.75, 2, 2.25, 2][MODEL];
+BRACE_LEN_RATIO = [.5, .55, .6, .65, .7, .6][MODEL]; // brace len as ratio of body rad
+BRACE_X_PLCMT_RATIO = [.55, .55, .55, .55, .55, .55][MODEL]; // front shift as ratio of body rad
+BRACE_X_WIDEN_RATIO = [.5, .5, .5, .5, .5, .5][MODEL]; // wide gap as ratio of body rad
 BRACE_X_MID_RATIO = [.666, .666, .666, .666, .666, .666][MODEL]; // mid point as ratio of brace len
 BRACE_X_ANGLE = [40, 40, 40, 40, 40, 40][MODEL]; // angle of brace from mid-line
 BRACE_SPAN_RATIO = MODEL < 5 ? .333 : .5;
@@ -244,6 +246,7 @@ BRACE_SPAN_RATIO = MODEL < 5 ? .333 : .5;
 // LOGO
 MODEL_CODE = str(MODEL, HEAD_STYLE, "-", 
                 (N_GAP>0?"N":""), 
+                (S_GAP>0?"N":""), 
                 (V_GAP>0?"V":""), 
                 (F_GAP>0?"F":""), 
                 (H_GAP>0?"H":""), 
@@ -315,17 +318,17 @@ SPINE_LEN =
 		  10 +SPINE_GAP/2):
     gourd_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN, SHOULDER_FLARE,FRONT_BACK_RATIO)
         -(HEAD_STYLE==1 ? BUTT_CHOP + (!SPINE_TENTED? SPINE_PRE_LEN: 0): 
-          N_GAP +V_GAP <= 0 ? 0 :TUNER_STYLE == 3 ? 1.8*TUNER_BTN_RAD: 1.65*TUNER_BTN_RAD);
+          N_GAP +S_GAP +V_GAP <= 0 ? 0 :TUNER_STYLE == 3 ? 1.8*TUNER_BTN_RAD: 1.65*TUNER_BTN_RAD);
 
 // dist from zero plane to slice off top & bottom of head 
 HEAD_POKED = len(search(SPINE_STYLE, [1,2])) > 0 && 
-            (V_GAP+F_GAP+H_GAP+N_GAP == 0 || H_GAP>0 && USE_SCREWS);
+            (V_GAP+F_GAP+H_GAP+N_GAP +S_GAP == 0 || H_GAP>0 && USE_SCREWS);
 HEAD_SLICE = [[1, 5, .25, .81, 1.4][TUNER_STYLE],
               [-3.25, -4.25, -4.5, -4.75, -5, -8][MODEL]]; 
 HEADLESS_STRING_ANGLE = [ 
     [36, 44, 44, 44, 44, 49][MODEL], 0, 
     [35, 29, 28, 27, 26, 29][MODEL] +(HEAD_POKED ?1 :0) 
-    -(F_GAP+V_GAP+H_GAP+N_GAP>0 ? 6: 9)
+    -(F_GAP+V_GAP+H_GAP+N_GAP +S_GAP>0 ? 6: 9)
    ][HEAD_STYLE]; 
 F0_RAD = 1.75;
 HEADLESS_TOP_GROOVE_RAD = [1.5*F0_RAD, 0, .666*HEAD_MIDLEN][HEAD_STYLE];

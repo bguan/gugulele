@@ -37,12 +37,12 @@ module assemble() {
             }
     
             if (SHOW_BRIDGE) {
-                translate([SCALE_LEN +N_GAP, 0, BRDG_SET  +B_GAP]) 
+                translate([SCALE_LEN +N_GAP +S_GAP, 0, BRDG_SET  +B_GAP]) 
                     bridge(is_cut = false); 
             }
             
             if (SHOW_GUIDE && (HEAD_STYLE==0 || HEAD_STYLE==2)) {
-                translate([STR_GUIDE_PLCMT +N_GAP, 0, 
+                translate([STR_GUIDE_PLCMT +N_GAP +S_GAP, 0, 
                          BRDG_SET -STR_GUIDE_SET_OFF_BRDG +G_GAP]) 
                     strings_guide(); 
             }
@@ -85,7 +85,7 @@ module assemble() {
         
         if (SHOW_CUTOUT) {
             translate([-100, 0, -V_GAP -body_rad -C_GAP])
-                cube([2*SCALE_LEN +N_GAP, 2*body_rad, 2*body_rad +V_GAP +F_GAP +C_GAP]);
+                cube([2*SCALE_LEN +N_GAP +S_GAP, 2*body_rad, 2*body_rad +V_GAP +F_GAP +C_GAP]);
         }
         
         if (SHOW_CROSS_SECTION) {
@@ -102,7 +102,7 @@ module assemble() {
         
     if (SHOW_PEGS) {
         if (HEAD_STYLE==0 || HEAD_STYLE==2) {
-            translate([N_GAP, 0, -TUNER_BD_TCK -FIT_TOL]) 
+            translate([N_GAP +S_GAP, 0, -TUNER_BD_TCK -FIT_TOL]) 
                 tail_pegs(is_cut = false);
         } else {
             translate([-H_GAP, 0, -V_GAP]) 
