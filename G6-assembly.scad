@@ -65,7 +65,8 @@ module assemble() {
             logo();
         }
         
-        if (SPINE_STYLE>0 && (SHOW_TOP || SHOW_BOTTOM || SHOW_HEAD || SHOW_FRETBD)) {    
+        if (SPINE_STYLE>0 && 
+		   (SHOW_SHOULDER_TOP || SHOW_SHOULDER_BOTTOM || SHOW_TOP || SHOW_BOTTOM || SHOW_HEAD || SHOW_FRETBD)) {    
             echo(str("spine_len = ", SPINE_LEN, ", or ", SPINE_LEN/INCH_TO_MM, " inches"));
             place_spine(is_cut = true);
         }
@@ -98,6 +99,7 @@ module assemble() {
             rotate([0, -FRETBD_RISE, 0]) 
                 deco_frets_from_nut(F1_LEN, F1_LEN / SEMI_RATIO, 1, true);
         }
+            
     }
         
     if (SHOW_PEGS) {

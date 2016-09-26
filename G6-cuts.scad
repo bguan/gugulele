@@ -453,8 +453,8 @@ module rect_spine(spine_len, spine_ht, spine_wth, tented = false, beveled = true
 
 module place_spine(is_cut = false) {        
     cut_adj = (is_cut ? FIT_TOL :0);
-    dist = (H_GAP + V_GAP + F_GAP + N_GAP +S_GAP > 0 && USE_SCREWS ? SPINE_GAP/2 : 0);
-    for (lr = USE_SCREWS ? [ 1, -1 ] : [0] ) {
+    dist = (H_GAP + V_GAP + F_GAP + N_GAP +S_GAP > 0 ? SPINE_GAP/2 : 0);
+    for (lr = dist > 0 ? [ 1, -1 ] : [0] ) {
         if (!RECT_SPINE) {
             translate([SPINE_PRE_LEN -H_GAP, lr*dist, SPINE_RAISE])
             round_spine(SPINE_LEN + H_GAP+N_GAP +S_GAP +2*cut_adj, 
@@ -562,4 +562,3 @@ module place_pickup(is_cut = true) {
         pickup(is_cut = true, rndrad, rimdep);
     }
 }
-

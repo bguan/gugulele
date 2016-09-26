@@ -1,9 +1,9 @@
 include <../G6.scad>;
 
 // Overriding Default Params
-HIRES = 20; 
-DEFRES = 10; 
-LORES = 5;
+HIRES = 36; 
+DEFRES = 18; 
+LORES = 9;
 
 //SHOW_LOGO = true; 
 //SHOW_HEAD = false;
@@ -32,7 +32,7 @@ MODEL = 5;
 HEAD_STYLE = 2;
 SPINE_STYLE = 2;   
 BRACE_STYLE = 1;   
-SNDHOLE_STYLE = 8;
+SNDHOLE_STYLE = 2;
 TUNER_STYLE = 3;
 PICKUP_STYLE = 2;
 BRDG_STYLE = 2;
@@ -40,7 +40,7 @@ SCALE_LEN = 580;
 F_GAP = 90;
 B_GAP = 90; 
 N_GAP = 90; 
-S_GAP = 90; 
+S_GAP = 120; 
 SPINE_GAP = 2*NUT_HOLE_GAP;
 USE_SCREWS = true;
 ENDPIN_ROLL = -6;

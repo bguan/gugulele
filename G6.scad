@@ -1,5 +1,5 @@
 include <../nutsnbolts/cyl_head_bolt.scad>;
-include <G6-params.scad>;
+include <G6-specs.scad>;
 include <G6-utils.scad>;
 include <G6-cuts.scad>;
 include <G6-parts.scad>;

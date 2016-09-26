@@ -113,6 +113,27 @@ module dovetail(is_cut=false) {
 	}
 }
 
+module shoulder_joint(is_cut=false) {
+    cut_adj = is_cut ? 2*FIT_TOL : 0;
+	difference() {
+		hull() 
+		for(ud = [0, -1]) {
+			for(lr = [-1, 1]) {
+				translate([(SHOULDER_JNT_LEN+cut_adj)/2, 
+							lr*(SHOULDER_JNT_WTH+cut_adj)/2, 
+							ud*(SHOULDER_JNT_TCK+cut_adj)-(V_GAP > 0 ? 0 : SHOULDER_JNT_TCK/3)]) 
+					rotate([0, 0, 90])
+					round_rod(SHOULDER_JNT_LEN+cut_adj, 1);
+			}
+		}
+
+		if (V_GAP > 0) {
+			translate([-500, -500, 0])
+			cube([1000, 1000, 1000]);
+		}
+	}
+}
+
 module body() {
 
     shoulder_rtop = shoulder_rtop(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE);
@@ -164,7 +185,7 @@ module body() {
     echo(str("Body Length = ", body_len, "mm"));
     
     screws_xy = [
-                 [NECK_LEN +N_GAP +.1*shoulder_len, body_rad*.21],
+                 [NECK_LEN +N_GAP +.1*shoulder_len, body_rad*.22],
                  [NECK_LEN +N_GAP +.5*shoulder_len, body_rad*.26], 
                  [NECK_LEN +N_GAP +S_GAP + .95*shoulder_len, body_rad*.54], 
                  [NECK_LEN +N_GAP +S_GAP +shoulder_len +torso_len*.34, body_rad*.82 ],
@@ -181,27 +202,28 @@ module body() {
                         TOP_SCALE, BOTTOM_SCALE);
             }
             
-            if (SHOW_TOP) {
+            if (SHOW_SHOULDER_TOP) {
 				translate([NECK_LEN +N_GAP -FUSE_SHIFT, 0, -FUSE_SHIFT]) {
 					fs_len = (1-SHOULDER_SPLIT_RATIO)*shoulder_len; 
 					bs_len = SHOULDER_SPLIT_RATIO*shoulder_len; 
-					for (sx = (S_GAP == 0 ? [0] : [0, S_GAP])) {
+					for (sx = (S_GAP == 0 ? [0] : V_GAP > 0 ? [S_GAP] : [0, S_GAP])) {
 						translate([sx, 0, 0]) {
 							difference() {
 								shoulder(0, front_scale, shoulder_len, torso_len,
 									shoulder_curve_R, shoulder_rtop, shoulder_rbot,
 									shoulder_atop, shoulder_abot,
 									TOP_SCALE, BOTTOM_SCALE);
-								if (S_GAP > 0) {
-									translate([(sx > 0 ? -bs_len : fs_len),
-										-500, -FUSE_SHIFT])
+								if (S_GAP > 0 && V_GAP == 0) {
+									translate([(sx > 0 ? -bs_len : fs_len), -500, -FUSE_SHIFT])
 										cube([shoulder_len, 1000, 1000]);
 								}
 							}
 						}
 					}
 				}
-				
+			}
+
+			if (SHOW_TOP) {
 				translate([NECK_LEN +N_GAP +S_GAP + shoulder_len -2*FUSE_SHIFT, 0, -FUSE_SHIFT])
 					torso(0, front_scale, torso_len, body_rad, TOP_SCALE, BOTTOM_SCALE);
 
@@ -235,7 +257,7 @@ module body() {
 				}
 			}
 
-            if (SHOW_BOTTOM) {
+            if (SHOW_SHOULDER_BOTTOM) {
 				fs_len = (1-SHOULDER_SPLIT_RATIO)*shoulder_len; 
 				bs_len = SHOULDER_SPLIT_RATIO*shoulder_len; 
 				tck = NECK_JOINT_TCK*2;
@@ -247,34 +269,31 @@ module body() {
 									shoulder_curve_R, shoulder_rtop, shoulder_rbot,
 									shoulder_atop, shoulder_abot,
 									TOP_SCALE, BOTTOM_SCALE);
+
 								if (S_GAP > 0) {
 									if (sx == 0) {
-										translate([fs_len, 
-											-.5*NECK_JOINT_WTH2 -FIT_TOL, 
-											-tck +FUSE_SHIFT])
-										cube([NECK_JOINT_LEN+FIT_TOL, NECK_JOINT_WTH2+2*FIT_TOL, tck]);
+										translate([fs_len, -500, -500])
+										cube([1000, 1000, 1000]);
 									} else {
-										for (lr = [-.5*NECK_JOINT_WTH2 -500, .5*NECK_JOINT_WTH2]) {
-											translate([fs_len , lr, -tck -FIT_TOL])
-											cube([NECK_JOINT_LEN+FIT_TOL, 500, tck+2*FIT_TOL]);
-										}
-									}
-								}
-								if (S_GAP > 0) {
-									if (sx == 0) {
-										translate([(sx > 0 ? -bs_len : fs_len), -500, -tck-500 +FUSE_SHIFT])
-										cube([shoulder_len, 1000, 500]);
-										translate([(sx > 0 ? -bs_len : fs_len)+NECK_JOINT_LEN, -500, -500 +FUSE_SHIFT])
-										cube([shoulder_len, 1000, 1000]);
-									} else {
-										translate([(sx > 0 ? -bs_len : fs_len), -500, -500 +FUSE_SHIFT])
-										cube([shoulder_len, 1000, 1000]);
+										translate([fs_len -1000, -500, -500])
+										cube([1000, 1000, 1000]);
+
+										translate([fs_len-FIT_TOL, 0, 0])
+										shoulder_joint(is_cut=true);
 									}
 								}
 							}
 						}
 					}
+
+					if (S_GAP > 0) {
+						translate([fs_len -FUSE_SHIFT, 0, 0])
+							shoulder_joint(is_cut=false);
+					}
 				}
+			}
+
+            if (SHOW_BOTTOM) {
 					
 				translate([NECK_LEN +N_GAP +S_GAP + shoulder_len -2*FUSE_SHIFT, 0, -V_GAP])
 					torso(1, front_scale, torso_len, body_rad, TOP_SCALE, BOTTOM_SCALE);
@@ -374,22 +393,45 @@ module body() {
                     }
                 }
             }
+
+			if (S_GAP > 0 && SHOW_SCREWS) {
+				//screw shoulders together
+				for (lr = [-1, 1]) {
+					translate([NECK_LEN +N_GAP +(1-SHOULDER_SPLIT_RATIO)*shoulder_len + SHOULDER_JNT_LEN/2, 
+								lr*(-6+SHOULDER_JNT_WTH/2), V_GAP == 0 ? 50 : -V_GAP/2]) {
+						screw(NECK_SCREW_MDL, thread=SCREW_THREAD);
+					}
+				}
+			}
         }
         
-        if (SHOW_TOP || SHOW_BOTTOM) {
+        if (SHOW_SHOULDER_TOP || SHOW_SHOULDER_BOTTOM || SHOW_TOP || SHOW_BOTTOM) {
             // chamber cut
 			translate([NECK_LEN +N_GAP +S_GAP +shoulder_len +torso_len -CHAMBER_FRONT_SHIFT, 
 							0, CHAMBER_UP_SHIFT]) 
 				rotate([0, -CHAMBER_TILT, 0])
 				chamber(chamber_front_scale, chamber_back_scale, chamber_rad);
         }
+
+		if (S_GAP > 0 && USE_SCREWS) {
+			//screw shoulders together
+			for (dz = [0, -V_GAP]) 
+			for (fb = [0, 1]) 
+			for (lr = [-1, 1])
+				translate([NECK_LEN +N_GAP +fb*S_GAP + (1-SHOULDER_SPLIT_RATIO)*shoulder_len + SHOULDER_JNT_LEN/2, 
+							lr*(-6+SHOULDER_JNT_WTH/2), dz+1]) {
+					cylinder(r=HEAD_SCREW_HEAD_RAD +FIT_TOL, h=40);
+					screw(NECK_SCREW_MDL, thread=SCREW_THREAD);
+				}
+		}
         
         // shoulder fretboard joint cut
-        if (SHOW_TOP && F_GAP+N_GAP+S_GAP > 0) {
+        if ((SHOW_SHOULDER_TOP || SHOW_TOP) && F_GAP+N_GAP+S_GAP > 0) {
 			for (sx = (S_GAP > 0 ? [0, S_GAP]: [0])) {
 				if (V_GAP > 0 || FORCE_FRETBD_TANG) {
 					translate([NECK_LEN +N_GAP +sx -FUSE_SHIFT, 
-								-FRETBD_TOUNGE_WTH/2 -FIT_TOL, (V_GAP > 0 ? -FIT_TOL: 0)]) 
+								-FRETBD_TOUNGE_WTH/2 -FIT_TOL, 
+								(V_GAP > 0 ? -FIT_TOL: sx > 0 ? -FIT_TOL : 0)]) 
 						cube([FRETBD_TOUNGE_LEN +FIT_TOL, 
 							  FRETBD_TOUNGE_WTH +2*FIT_TOL, body_rad]);
 				} else {
@@ -446,15 +488,18 @@ module body() {
         }
         
         // screw fretboard to neck
-        if ((SHOW_NECK || SHOW_TOP) && USE_SCREWS && V_GAP + F_GAP + N_GAP +S_GAP > 0) {
+        if ((SHOW_NECK || SHOW_SHOULDER_TOP || SHOW_SHOULDER_BOTTOM ||  SHOW_TOP) && 
+			USE_SCREWS && V_GAP + F_GAP + N_GAP +S_GAP > 0) {
 			for(dz = (V_GAP > 0 ? [0, -V_GAP] :[0])) {
 				translate([0, 0, dz]) {    
-					for(dx = (N_GAP + S_GAP > 0 ? [0, N_GAP, N_GAP+S_GAP]: [0])) {
+					for(dx = (N_GAP > 0 && S_GAP > 0 ? [0, N_GAP, N_GAP+S_GAP]:
+							  N_GAP > 0 ? [0, N_GAP] :
+							  S_GAP > 0 ? [0, S_GAP] : [0])) {
 						rotate([0, -FRETBD_RISE, 0]) 
 						translate([dx, 0, 0]) 
-						deco_frets_from_nut(F1_LEN, F1_LEN / SEMI_RATIO, 
-							1, true, from=(dx > N_GAP ? 12 : dx > 0 ? 9 : 0), 
-							to=(dx > 0 || N_GAP+S_GAP <= 0 ? 24 : 12));
+						deco_frets_from_nut(F1_LEN, F1_LEN / SEMI_RATIO, 1, true, 
+							from=(dx == 0 ? 0 : dx == N_GAP || dx == S_GAP ? 9 : 17),
+							to=(dx + N_GAP + S_GAP == 0 ? 24 : dx == 0 ? 20 : 24));
 					}
 				}   
 			}
@@ -519,7 +564,7 @@ module body() {
 	// under soundboard reinforcement for bridge
 	if (SHOW_TOP && BRDG_STYLE == 2) {
 		difference() {
-			translate([SCALE_LEN +N_GAP +S_GAP, 0, BRDG_SET -.15*BRDG_TCK]) 
+			translate([SCALE_LEN +N_GAP +S_GAP, 0, BRDG_SET -.25*BRDG_TCK]) 
 			scale([BRDG_WTH*3, 1, .6666666*BRDG_TCK])
 			round_rod(BRDG_LEN, .3);
 
@@ -1094,7 +1139,7 @@ module strings() {
 
 module xbrace(body_rad, butt_len) {    
     rod_vrad = .2*body_rad*TOP_SCALE;
-	rod_lift = [6.5, 6, 5.5, 5, 4.5, 5][MODEL]*rod_vrad;
+	rod_lift = 4*rod_vrad; //[7.5, 7, 6.5, 6, 5.5, 5][MODEL]*rod_vrad;
     
     intersection() {
         union() {
