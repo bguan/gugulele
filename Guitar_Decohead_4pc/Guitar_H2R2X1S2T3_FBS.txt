@@ -1,0 +1,13 @@
+Tue Aug 23 16:34:18 PDT 2016
+ECHO: "TUNER_FANOUT_RAD = 114.791, TUNER_CAVITY_DEP = 0, TUNER_CAVITY_DOME_SCALE = 0.719531"
+ECHO: "scale_len = 650, Action at 12th fret = 2.1973"
+ECHO: "body_rad = 139.277, front_scale = 1.79198, back_scale = 0.895989"
+ECHO: "TOP_SCALE = 0.111111, BOTTOM_SCALE = 0.666667"
+ECHO: "Chamber volume = 4.61025e+06(mm^3)"
+ECHO: "Max sndbd_tck (mm): 2.13862"
+ECHO: "helmholz_freq = 593.963hz"
+ECHO: "Body Length = 774.791mm"
+ECHO: "F holes total area (m^2): 1167.21"
+ECHO: "Head Length = 29.1904"
+ECHO: "Max num of frets: ", 21
+ECHO: "spine_len = 806.291, or 31.7437 inches"
