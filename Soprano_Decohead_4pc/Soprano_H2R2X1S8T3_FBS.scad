@@ -1,10 +1,10 @@
 include <../G6.scad>;
 
 // Overriding Default Params
-HIRES = 180; 
-DEFRES = 60; 
-LORES = 20;
-//SHOW_LOGO = true; 
+HIRES = 30; //180; 
+DEFRES = 10; //60; 
+LORES = 5; //20;
+SHOW_LOGO = true; 
 //SHOW_HEAD = false;
 //SHOW_NECK = false;
 //SHOW_FRETBD = false;
