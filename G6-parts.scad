@@ -225,8 +225,8 @@ module body() {
     echo(str("Body Length = ", body_len, "mm"));
     
     screws_xy = [
-                 [NECK_LEN +N_GAP +.1*shoulder_len, body_rad*.22],
-                 [NECK_LEN +N_GAP +.5*shoulder_len, body_rad*.26], 
+                 [NECK_LEN +N_GAP +.1*shoulder_len, body_rad*.205],
+                 [NECK_LEN +N_GAP +.5*shoulder_len, body_rad*.27], 
                  [NECK_LEN +N_GAP + .95*shoulder_len, body_rad*.54], 
                  [NECK_LEN +N_GAP +shoulder_len +torso_len*.34, body_rad*.82 ],
                  [NECK_LEN +N_GAP +shoulder_len +torso_len, body_rad*.965],
@@ -514,7 +514,7 @@ module body() {
 		  for(sadj = (S_GAP > 0 ? [0, S_GAP] : [0])) {
             for(cxy = screws_xy)  {
 			  if (sadj == S_GAP || cxy[0] < NECK_LEN + N_GAP + shoulder_len) {
-                if (HEAD_STYLE==1 || cxy[0] < (.8*body_len +N_GAP)) {
+                if (HEAD_STYLE==1 || cxy[0] < (.9*body_len +N_GAP)) {
                     for (cz = [1, 1-V_GAP]) {
                         if ((SHOW_TOP && cz > 0) || (SHOW_BOTTOM && cz <0))
                         for (lr = [1, -1]) {
