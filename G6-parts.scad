@@ -159,6 +159,17 @@ module body() {
     chamber_vol = top_front_vol +top_back_vol +bot_front_vol +bot_back_vol;
     echo(str("Chamber volume = ",chamber_vol, "(mm^3)"));
     
+    // subtract spine & brace?
+    chmb_len = chamber_rad*(chamber_front_scale + chamber_back_scale);
+    echo(str("chamber len = ", chmb_len, "mm"));
+    spine_vol_chmb = (SPINE_STYLE >=2 ? SPINE_HT*SPINE_WTH*chmb_len*(SPINE_GAP > 0 ? 2 : 1) : 0);
+    echo(str("spine_vol_chmb = ", spine_vol_chmb, "mm^3"));
+    brace_vol_chmb = [0, 2*chmb_len*BRACE_LEN_RATIO*BRACE_WTH, 
+						chmb_len*BRACE_LEN_RATIO*body_rad*BRACE_SPAN_RATIO][BRACE_STYLE]; 
+    echo(str("brace_vol_chmb = ", brace_vol_chmb, "mm^3"));
+    adj_chmb_vol = chamber_vol -spine_vol_chmb -brace_vol_chmb; 
+    echo(str("adjusted chamber volume = ", adj_chmb_vol, "mm^3"));
+    
     hook_wth = HOOK_WTH_RATIO*body_rad;
     hook_len = HOOK_LEN_RATIO*torso_len;
     fholes_area = 2 *2 *hook_area(hook_wth, hook_len);
@@ -172,14 +183,43 @@ module body() {
     
     harea = ([0, fholes_area, top_hole_area, dbl_o, sgl_o][(SNDHOLE_STYLE -SNDHOLE_STYLE%2)/2])/
             pow(1000, 2);
-    hvol = chamber_vol/pow(1000,3);
+    hvol = adj_chmb_vol/pow(1000,3);
     
-    sndbd_tck = body_rad*TOP_SCALE -chamber_rad*CHAMBER_TOP_SCALE 
+    /* from
+       http://www.acousticmasters.com/AcousticMasters_GuitarBody2.htm
+       https://newt.phys.unsw.edu.au/jw/Helmholtz.html
+ 
+    all fancy calc doesn't seem to work...
+
+    max_tck = body_rad*TOP_SCALE -chamber_rad*CHAMBER_TOP_SCALE 
                 -CHAMBER_UP_SHIFT +CHAMBER_FRONT_SHIFT*tan(CHAMBER_TILT);
-    echo(str("Max sndbd_tck (mm): ", sndbd_tck));
-    
-    helmholz_freq = (SND_AIR_SPEED * sqrt(harea/(hvol * .001*sndbd_tck)))/(2 *PI);
+    echo(str("Max sndbd_tck (mm): ", max_tck));
+
+    chmb_rim_ang = atan((CHAMBER_UP_SHIFT /CHAMBER_TOP_SCALE) / chamber_rad);
+    echo(str("chmb_rim_ang: ", chmb_rim_ang));
+
+    shell_rim_ang = acos(chamber_rad * cos(chmb_rim_ang) / body_rad);
+    echo(str("shell_rim_ang: ", shell_rim_ang));
+
+    shell_rim_ht = tan(shell_rim_ang * body_rad * TOP_SCALE);
+    echo(str("shell_rim_ht: ", shell_rim_ht));
+
+    min_tck = shell_rim_ht - CHAMBER_UP_SHIFT;
+    echo(str("Min sndbd_tck (mm): ", min_tck));
+
+	sndbd_tck = (max_tck + min_tck)/2;
+    */
+
+    max_tck = body_rad*TOP_SCALE -chamber_rad*CHAMBER_TOP_SCALE 
+                -CHAMBER_UP_SHIFT +CHAMBER_FRONT_SHIFT*tan(CHAMBER_TILT) ;
+    sndbd_tck = max_tck;
+    echo(str("sndbd_tck (mm): ", sndbd_tck));
+
+    tube_len = sndbd_tck + 1.7*(oval_len+oval_wth)/2;
+
+    helmholz_freq = (SND_AIR_SPEED * sqrt(harea/(hvol * .001*tube_len)))/(2 *PI);
     echo(str("helmholz_freq = ", helmholz_freq, "hz"));
+    echo(str("adjusted helmholz_freq = ", .98*helmholz_freq, "hz"));
 
     body_len = BODY_LEN;
     echo(str("Body Length = ", body_len, "mm"));
@@ -187,11 +227,11 @@ module body() {
     screws_xy = [
                  [NECK_LEN +N_GAP +.1*shoulder_len, body_rad*.22],
                  [NECK_LEN +N_GAP +.5*shoulder_len, body_rad*.26], 
-                 [NECK_LEN +N_GAP +S_GAP + .95*shoulder_len, body_rad*.54], 
-                 [NECK_LEN +N_GAP +S_GAP +shoulder_len +torso_len*.34, body_rad*.82 ],
-                 [NECK_LEN +N_GAP +S_GAP +shoulder_len +torso_len, body_rad*.965],
-                 [body_len +N_GAP +S_GAP -10, body_rad*.55],
-                 [body_len +N_GAP +S_GAP -3, body_rad*.15] 
+                 [NECK_LEN +N_GAP + .95*shoulder_len, body_rad*.54], 
+                 [NECK_LEN +N_GAP +shoulder_len +torso_len*.34, body_rad*.82 ],
+                 [NECK_LEN +N_GAP +shoulder_len +torso_len, body_rad*.965],
+                 [body_len +N_GAP -10, body_rad*.55],
+                 [body_len +N_GAP -3, body_rad*.15] 
                 ];
     
     difference() {
@@ -369,7 +409,7 @@ module body() {
                 }
             }
             
-            if (SHOW_BOTTOM && N_GAP > 0) {
+            if (SHOW_SHOULDER_BOTTOM && N_GAP > 0) {
                 // dovetail joint
                 translate([NECK_LEN +N_GAP -NECK_JOINT_LEN +FUSE_SHIFT, 0, 
                     -NECK_JOINT_TCK -V_GAP])
@@ -387,7 +427,7 @@ module body() {
                 for(sxy = screws_xy)  {
                     if (HEAD_STYLE==1 || sxy[0] < (.9*body_len +N_GAP +S_GAP)) {
                         for (lr = [1, -1]) {
-                            translate([sxy[0], lr*sxy[1], sz]) 
+                            translate([sxy[0] +S_GAP, lr*sxy[1], sz]) 
                             screw(BODY_SCREW_MDL, thread="no"); 
                         }  
                     }
@@ -471,12 +511,14 @@ module body() {
         
         // screw top and bottom of body together
         if (USE_SCREWS && V_GAP > 0) { 
-             for(cxy = screws_xy)  {
-                if (HEAD_STYLE==1 || cxy[0] < (.9*body_len +N_GAP +S_GAP)) {
+		  for(sadj = (S_GAP > 0 ? [0, S_GAP] : [0])) {
+            for(cxy = screws_xy)  {
+			  if (sadj == S_GAP || cxy[0] < NECK_LEN + N_GAP + shoulder_len) {
+                if (HEAD_STYLE==1 || cxy[0] < (.8*body_len +N_GAP)) {
                     for (cz = [1, 1-V_GAP]) {
                         if ((SHOW_TOP && cz > 0) || (SHOW_BOTTOM && cz <0))
                         for (lr = [1, -1]) {
-                            translate([cxy[0], lr*cxy[1], cz]) {
+                            translate([cxy[0] +sadj, lr*cxy[1], cz]) {
                                 if (cz >= 0) 
                                     cylinder(r=BODY_SCREW_HEAD_RAD, h=body_rad);
                                 screw(BODY_SCREW_MDL, thread="no"); 
@@ -484,7 +526,9 @@ module body() {
                         }  
                     }
                 }
+			  }
             }    
+		  }
         }
         
         // screw fretboard to neck
@@ -943,8 +987,8 @@ module bridge(is_cut = false) {
         
         // string grooves on top of saddle
         if (!is_cut) {
-			translate([-10, 0, BRDG_TCK +SDDL_RAD +.1*STR_HOLE_RAD]) 
-			string_holes(90, brdg_hole_gap, .5);
+			translate([-10, 0, BRDG_TCK +SDDL_RAD +.25*STR_HOLE_RAD]) 
+			string_holes(90, brdg_hole_gap, STR_HOLE_RAD); // .5);
 
 			if (STRTIE_STYLE == 1) {
 				translate([SDDL_RAD, 0, BRDG_TCK +SDDL_RAD]) 
@@ -1139,7 +1183,7 @@ module strings() {
 
 module xbrace(body_rad, butt_len) {    
     rod_vrad = .2*body_rad*TOP_SCALE;
-	rod_lift = 4*rod_vrad; //[7.5, 7, 6.5, 6, 5.5, 5][MODEL]*rod_vrad;
+	rod_lift = [7.5, 7, 6.5, 6, 6, 5.5][MODEL]*rod_vrad;
     
     intersection() {
         union() {
@@ -1179,7 +1223,7 @@ module tbrace(body_rad, butt_len) {
             translate([N_GAP +S_GAP +SCALE_LEN -.2*body_rad, 0, 3.5*rod_vrad])
             rotate([0, 0, 90])
             scale([1, 4, 1.5*rod_vrad/BRACE_WTH])
-                round_rod(body_rad*BRACE_LEN_RATIO/4, BRACE_WTH);
+                round_rod(body_rad*BRACE_LEN_RATIO/3, BRACE_WTH);
             
             translate([N_GAP +S_GAP +SCALE_LEN, 0, 3.5*rod_vrad])
             scale([1, 4, 1.5*rod_vrad/BRACE_WTH])

@@ -7,8 +7,8 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
     irad = brad -3*BACK_SCREW_HEAD_RAD + (is_cut ? FIT_TOL : 0);
     //tck = is_cut ? 1.4 : bot_scale*brad;
     //itck = is_cut ? .75*bot_scale*brad : 1.4;
-    tck = is_cut ? .75 : bot_scale*brad;
-    itck = is_cut ? .5*bot_scale*brad : 1;
+    tck = is_cut ? 1.5: bot_scale*brad;
+    itck = is_cut ? 1.5*bot_scale*brad : 1;
     rndrad = BOT_RND_RAD; //.65;
     orad = BOT_RND_RAD; //.65;
     side_scale = BACK_COVER_SIDE_SCALE;
@@ -85,7 +85,7 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
             if (!is_cut && USE_SCREWS) {
                 for(fb =[1, -1]) {
 					for(lr = fb > 0 ? [-.5, .5] : [-1, 1]) {
-						translate([fb*(-(fb >0 ?front_scale :CHAMBER_BACK_RATIO*back_scale)*brad +3.5*BACK_SCREW_HEAD_RAD), 
+						translate([fb*(-(fb >0 ?front_scale :CHAMBER_BACK_RATIO*back_scale)*brad +4*BACK_SCREW_HEAD_RAD), 
 								lr*4*ENDPIN_RAD, -2])
 						rotate([180, 0, 0])
 						union() {
@@ -97,7 +97,7 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
                 
                 for(lr =[-1, 1]) {
                     translate([-.1*BODY_RAD, 
-                        lr*(side_scale*brad -2*BACK_SCREW_HEAD_RAD), 
+                        lr*(side_scale*brad -1.5*BACK_SCREW_HEAD_RAD), 
                         -2])
                     rotate([180, 0, 0])
                     union() {
@@ -111,7 +111,7 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
         if (is_cut && USE_SCREWS) {
             for(fb =[1, -1]) {
 				for(lr = fb > 0 ? [-.5, .5] : [-1, 1]) {
-					translate([fb*(-(fb >0 ?front_scale :CHAMBER_BACK_RATIO*back_scale)*brad +3.5*BACK_SCREW_HEAD_RAD), 
+					translate([fb*(-(fb >0 ?front_scale :CHAMBER_BACK_RATIO*back_scale)*brad +4*BACK_SCREW_HEAD_RAD), 
 							lr*4*ENDPIN_RAD, -2])
 					rotate([180, 0, 0])
 					union() {
@@ -123,7 +123,7 @@ module back_cover(body_rad, bot_scale, front_scale, back_scale, is_cut=false) {
             
             for(lr =[-1, 1]) {
                 translate([-.1*BODY_RAD, 
-                    lr*(side_scale*brad -2*BACK_SCREW_HEAD_RAD), 
+                    lr*(side_scale*brad -1.5*BACK_SCREW_HEAD_RAD), 
                     -2])
                 rotate([180, 0, 0])
                 union() {

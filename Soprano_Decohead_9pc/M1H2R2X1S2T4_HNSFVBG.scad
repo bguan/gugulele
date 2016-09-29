@@ -1,9 +1,9 @@
 include <../G6.scad>;
 
 // Overriding Default Params
-HIRES = 60; 
-DEFRES = 30; 
-LORES = 10;
+HIRES = 20; 
+DEFRES = 10; 
+LORES = 5;
 SHOW_LOGO = true; 
 //SHOW_HEAD = false;
 //SHOW_NECK = false;
@@ -26,9 +26,9 @@ SHOW_LOGO = true;
 //SHOW_CROSS_SECTION = true;
 
 // High level params
-TOP_RND_RAD = .5;
-BOT_RND_RAD = .5;
-HD_RND_RAD = .5;
+//TOP_RND_RAD = .5;
+//BOT_RND_RAD = .5;
+//HD_RND_RAD = .5;
 MODEL = 1;
 TUNER_STYLE = 4;
 HEAD_STYLE = 2;
@@ -45,3 +45,6 @@ N_GAP = 90;
 S_GAP = 90;
 USE_SCREWS = true;
 SPINE_GAP = 2*NUT_HOLE_GAP;
+FRONT_BACK_RATIO = 2;
+CHAMBER_BACK_RATIO = .85;
+ANCHORPIN_ANGLE = 150;
