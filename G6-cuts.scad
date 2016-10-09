@@ -178,6 +178,10 @@ module peg(anchor_dx = 0, anchor_dy = 0, is_cut = true) {
             cylinder(h=TUNER_BD_TCK +2*FIT_TOL, 
 					r=TUNER_HOLE_RAD +cut_adj +max(top_rnd_rad, bot_rnd_rad), 
 					$fn=peg_res);
+
+			if (anchor_dx > 0 || anchor_dy > 0) {
+				peg_anchor(anchor_dx, anchor_dy, is_cut);
+			}
             
             if (HEAD_STYLE == 1 || len(search(TUNER_STYLE, [0, 1])) > 0 || FORCE_TAIL_CAVITY) {
                 // bottom counter hole
@@ -269,12 +273,12 @@ module sound_port(rad) {
     cylinder(r1 = rad, r2 = .1*rad, h=1.5*rad);
 }
 
-module string_holes(deg, gap, str_hole_rad = STR_HOLE_RAD) {
+module string_holes(deg, gap, str_hole_rad = STR_HOLE_RAD, strlen=0) {
 	str_res = DEFRES/2;
     rotate(deg,[0,1,0]) {
         for (i = [0:NUM_STRS-1]) {
             translate([0,(-(NUM_STRS/2 - 0.5) +i)*gap,0]) {
-                cylinder(h=4*gap, r=str_hole_rad, $fn=str_res);
+                cylinder(h=(strlen <= 0 ? 4*gap : strlen), r=str_hole_rad, $fn=str_res);
             }
         }
     }

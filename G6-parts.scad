@@ -188,26 +188,6 @@ module body() {
     /* from
        http://www.acousticmasters.com/AcousticMasters_GuitarBody2.htm
        https://newt.phys.unsw.edu.au/jw/Helmholtz.html
- 
-    all fancy calc doesn't seem to work...
-
-    max_tck = body_rad*TOP_SCALE -chamber_rad*CHAMBER_TOP_SCALE 
-                -CHAMBER_UP_SHIFT +CHAMBER_FRONT_SHIFT*tan(CHAMBER_TILT);
-    echo(str("Max sndbd_tck (mm): ", max_tck));
-
-    chmb_rim_ang = atan((CHAMBER_UP_SHIFT /CHAMBER_TOP_SCALE) / chamber_rad);
-    echo(str("chmb_rim_ang: ", chmb_rim_ang));
-
-    shell_rim_ang = acos(chamber_rad * cos(chmb_rim_ang) / body_rad);
-    echo(str("shell_rim_ang: ", shell_rim_ang));
-
-    shell_rim_ht = tan(shell_rim_ang * body_rad * TOP_SCALE);
-    echo(str("shell_rim_ht: ", shell_rim_ht));
-
-    min_tck = shell_rim_ht - CHAMBER_UP_SHIFT;
-    echo(str("Min sndbd_tck (mm): ", min_tck));
-
-	sndbd_tck = (max_tck + min_tck)/2;
     */
 
     max_tck = body_rad*TOP_SCALE -chamber_rad*CHAMBER_TOP_SCALE 
@@ -375,7 +355,8 @@ module body() {
 						cube([1000, 1000, 100]);
 					}
 
-					translate([N_GAP +S_GAP, 0, TUNER_UPLIFT -TUNER_BD_TCK +FIT_TOL -V_GAP])
+					if (HEAD_STYLE != 1)
+					    translate([N_GAP +S_GAP, 0, TUNER_UPLIFT -TUNER_BD_TCK +FIT_TOL -V_GAP])
 						tail_peg_anchors(is_cut = true);
 				}
 			}
@@ -418,7 +399,8 @@ module body() {
             
             if (SHOW_TOP && BRDG_STYLE == 1) {
 				// bridge seat 
-				translate([SCALE_LEN +N_GAP +S_GAP, 0, BRDG_SET -.25*BRDG_TCK]) 
+				translate([SCALE_LEN +N_GAP +S_GAP + (HEAD_STYLE ==1 && STRTIE_STYLE !=2 ? -1+BRDG_WTH/2 : 0), 
+						0, BRDG_SET -.25*BRDG_TCK]) 
 					cube([BRDG_WTH+2, BRDG_LEN+2, .5*BRDG_TCK], center = true);
             }
 
@@ -584,12 +566,17 @@ module body() {
 				translate([SCALE_LEN +N_GAP +S_GAP, 0, BRDG_SET]) 
 				thru_holes();
 			} else if (STRTIE_STYLE == 2) {
-    			tail_hole_gap = BODY_LEN*NECK_SLOPE*2/NUM_STRS +NUT_HOLE_GAP;
-				translate([BODY_LEN -.15*BUTT_LEN, 0, BRDG_SET]) 
-				string_holes(130, tail_hole_gap, .5);
+                strtie_entry = .1*BUTT_LEN;
+				groove_rad = BODY_RAD*TOP_SCALE*.5;
+				strtie_angle = (V_GAP > 0 ? 130 : 145);
 
-				translate([BODY_LEN+(.05*BUTT_LEN), 0, 0]) 
-					round_rod(1.1*(NUM_STRS-1)*tail_hole_gap, BODY_RAD*TOP_SCALE/2);
+    			tail_hole_gap = BODY_LEN*NECK_SLOPE*2/NUM_STRS +NUT_HOLE_GAP;
+	
+				translate([BODY_LEN - strtie_entry, 0, BRDG_SET]) 
+				string_holes(strtie_angle, tail_hole_gap, .5);
+
+				translate([BODY_LEN+(.05*BUTT_LEN), 0, groove_rad - (V_GAP > 0 ? .25 : .75)*strtie_entry]) 
+					round_rod(1.1*(NUM_STRS-1)*tail_hole_gap, groove_rad);
 
 			}
         }
@@ -930,7 +917,7 @@ module bridge(is_cut = false) {
     brdg_len = BRDG_LEN;
     
     difference() {
-        if (HEAD_STYLE==0 || HEAD_STYLE==2) {
+        if (HEAD_STYLE==0 || HEAD_STYLE==2 || (HEAD_STYLE==1 && STRTIE_STYLE==2)) {
             // bridge block
             translate([-BRDG_WTH /2 -cut_adj, -brdg_len/2 -cut_adj, -cut_adj]) 
             cube([BRDG_WTH +2*cut_adj, brdg_len +2*cut_adj, BRDG_TCK +cut_adj]);
@@ -949,19 +936,20 @@ module bridge(is_cut = false) {
             translate([0, brdg_len/2, BRDG_TCK]) 
             rotate([90,0,0]) cylinder(h=brdg_len, r=SDDL_RAD);
 
-//			if (!is_cut && BRDG_STYLE >= 2) {
-//				// string tie block
-//				translate([-SDDL_RAD -cut_adj, -brdg_len/2 -cut_adj, -cut_adj]) 
-//				cube([BRDG_WTH +2*cut_adj, brdg_len +2*cut_adj, BRDG_TCK +cut_adj]);
-//			}
+			if (!is_cut && STRTIE_STYLE == 1) {
+				// string tie block
+				translate([-1+BRDG_WTH/2, -brdg_len/2, BRDG_TCK-FUSE_SHIFT]) 
+				cube([BRDG_WTH/2, brdg_len, SDDL_RAD]);
+			}
         }
          
-        if ((HEAD_STYLE==0 || HEAD_STYLE==2) && !is_cut) {
+        if ((HEAD_STYLE==0 || HEAD_STYLE==2 || (HEAD_STYLE==1 && STRTIE_STYLE==2)) && !is_cut) {
             // bridge front/back carves
             for (x = [-1, 1]) { 
-                translate([x*(SDDL_RAD+cut_rad), brdg_len/2 +1, BRDG_TCK]) 
-                scale([1, 1, cut_scale])  
-                rotate([90, 0, 0]) cylinder(r=cut_rad, h=brdg_len+2, $fn=2*DEFRES);
+                translate([x*(SDDL_RAD+cut_rad), brdg_len/2 +1, BRDG_TCK]) {
+					scale([1, 1, cut_scale])  
+					rotate([90, 0, 0]) cylinder(r=cut_rad, h=brdg_len+2, $fn=2*DEFRES);
+				}
             } 
             // bridge left/right carves
             for (y = [-1, 1]) { 
@@ -970,10 +958,13 @@ module bridge(is_cut = false) {
             }
         } else if (HEAD_STYLE==1 && !is_cut) {
             // bridge back carve
-            translate([STRTIE_STYLE == 1 ? cut_rad+SDDL_RAD : BRDG_WTH, brdg_len/2 +1, BRDG_TCK]) 
-            scale([1, 1, (STRTIE_STYLE == 1 ? 1.2 : 1)*cut_scale])
-            rotate([90, 0, 0]) cylinder(r=cut_rad, h=brdg_len+2, $fn=2*DEFRES);
-            
+            translate([STRTIE_STYLE == 1 ? cut_rad+SDDL_RAD : BRDG_WTH, brdg_len/2 +1, BRDG_TCK]) {
+				translate([-cut_rad, -brdg_len-2, -FUSE_SHIFT]) 
+					cube([cut_rad*2, brdg_len+2, BRDG_TCK]);
+				scale([1, 1, (STRTIE_STYLE == 1 ? 1.2 : 1)*cut_scale])
+				rotate([90, 0, 0]) cylinder(r=cut_rad, h=brdg_len+2, $fn=2*DEFRES);
+            }
+
             if (STRTIE_STYLE != 1) {
 				// bridge left/right carves
 				for (y = [-1, 1]) { 
@@ -988,10 +979,10 @@ module bridge(is_cut = false) {
         // string grooves on top of saddle
         if (!is_cut) {
 			translate([-10, 0, BRDG_TCK +SDDL_RAD +.25*STR_HOLE_RAD]) 
-			string_holes(90, brdg_hole_gap, STR_HOLE_RAD); // .5);
+			string_holes(90, brdg_hole_gap, STR_HOLE_RAD, strlen=brdg_hole_gap); // .5);
 
 			if (STRTIE_STYLE == 1) {
-				translate([SDDL_RAD, 0, BRDG_TCK +SDDL_RAD]) 
+				translate([BRDG_WTH/2, 0, BRDG_TCK +SDDL_RAD]) 
 				string_holes(115, brdg_hole_gap, .5);
 
 				// groove at back of bridge for string knots
@@ -1004,10 +995,10 @@ module bridge(is_cut = false) {
 		}
                 
         if (USE_SCREWS && B_GAP > 0 && !is_cut)
-        for (y = [1, -1]) {
-            translate([ (HEAD_STYLE!=1 ?0 : STRTIE_STYLE == 1 ? .4*BRDG_WTH : BRDG_SCREW_HEAD_RAD), 
+        for (y = (STRTIE_STYLE==1 ? [.95, -.95] : [1, -1])) {
+            translate([ (HEAD_STYLE!=1 || STRTIE_STYLE==2 ?0 : STRTIE_STYLE==1? .4*BRDG_WTH:BRDG_SCREW_HEAD_RAD), 
                         y*(brdg_len - 2.1*BRDG_SCREW_HEAD_RAD)/2, 
-                        brdg_bottom+.25]) {
+                        brdg_bottom+(STRTIE_STYLE==1 ? -2 :.25)]) {
                 cylinder(r=BRDG_SCREW_HEAD_RAD +FIT_TOL, h=BRDG_TCK);
                 screw(BRDG_SCREW_MDL, thread=SCREW_THREAD);
             }
@@ -1015,16 +1006,16 @@ module bridge(is_cut = false) {
     } 
         
     if (USE_SCREWS && B_GAP > 0)
-    for (y = [1, -1]) {
+    for (y = (STRTIE_STYLE==1 ? [.95, -.95] : [1, -1])) {
         if (is_cut) {
-            translate([(HEAD_STYLE!=1 ?0 : STRTIE_STYLE == 1 ? .4*BRDG_WTH : BRDG_SCREW_HEAD_RAD), 
+            translate([(HEAD_STYLE!=1 || STRTIE_STYLE == 2 ? 0 : STRTIE_STYLE==1? .4*BRDG_WTH:BRDG_SCREW_HEAD_RAD), 
                     y*(brdg_len - 2.1*BRDG_SCREW_HEAD_RAD)/2, 
-                    brdg_bottom+.25]) {
+                    brdg_bottom+(STRTIE_STYLE==1 ? -2 :.25)]) {
                 cylinder(r=BRDG_SCREW_HEAD_RAD +FIT_TOL, h=BRDG_TCK);
                 screw(BRDG_SCREW_MDL, thread=SCREW_THREAD);
             }
         } else if (SHOW_SCREWS) {
-            translate([(HEAD_STYLE!=1 ?0 : STRTIE_STYLE == 1 ? .4*BRDG_WTH : BRDG_SCREW_HEAD_RAD), 
+            translate([(HEAD_STYLE!=1 || STRTIE_STYLE == 2 ? 0 : STRTIE_STYLE==1? .4*BRDG_WTH:BRDG_SCREW_HEAD_RAD), 
                     y*(brdg_len - 2.1*BRDG_SCREW_HEAD_RAD)/2, 
                     brdg_bottom - .5*B_GAP]) {
                 screw(BRDG_SCREW_MDL, thread=SCREW_THREAD);
