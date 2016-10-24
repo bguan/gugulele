@@ -472,43 +472,46 @@ module place_spine(is_cut = false) {
                         SPINE_WTH +2*cut_adj,
                         tented=SPINE_TENTED);
             }
+			
+			for (vd = (V_GAP > 0 ? [0, V_GAP] : [0])) {
             
-            if (is_cut && N_GAP +S_GAP > 0) {
-                translate([SPINE_PRE_LEN -H_GAP, lr*dist, SPINE_RAISE +FUSE_SHIFT -V_GAP]) 
-                rotate([0, SPINE_STYLE ==3 ? SPINE_DIP :0, lr*SPINE_FAN]) 
-                rect_spine(NECK_LEN +H_GAP+N_GAP +S_GAP +cut_adj, 
-                        SPINE_HT +2*cut_adj, 
-                        SPINE_WTH +2*cut_adj,
-                        tented=SPINE_TENTED);
-                
-                translate([SPINE_PRE_LEN -H_GAP +N_GAP +S_GAP, lr*dist, SPINE_RAISE +FUSE_SHIFT -V_GAP]) 
-                rotate([0, SPINE_STYLE ==3 ? SPINE_DIP :0, lr*SPINE_FAN]) 
-                rect_spine(SPINE_LEN +H_GAP+cut_adj, 
-                        SPINE_HT +2*cut_adj, 
-                        SPINE_WTH +2*cut_adj,
-                        tented=SPINE_TENTED);
-            } else {
-                translate([SPINE_PRE_LEN -H_GAP, lr*dist, SPINE_RAISE +FUSE_SHIFT -V_GAP]) 
-                rotate([0, SPINE_STYLE ==3 ? SPINE_DIP :0, lr*SPINE_FAN]) 
-                rect_spine(SPINE_LEN + N_GAP +S_GAP+H_GAP +cut_adj, 
-                        SPINE_HT +2*cut_adj, 
-                        SPINE_WTH +2*cut_adj,
-                        tented=SPINE_TENTED);
-            }
-            
-            if (is_cut && SPINE_STYLE == 3) {
-                // cut groove above actual spine in neck
-                difference() {
-                    translate([SPINE_PRE_LEN -H_GAP +N_GAP +S_GAP, lr*dist, SPINE_RAISE +2*SPINE_HT-V_GAP]) 
-                    rotate([0, SPINE_DIP, lr*SPINE_FAN]) 
-                    rect_spine(.8*SPINE_LEN +cut_adj +H_GAP +N_GAP +S_GAP, 
-                            4*SPINE_HT+2*cut_adj, 
-                            SPINE_WTH +2*cut_adj,
-                            tented=SPINE_TENTED, beveled=false);
-                    translate([0, -500, 1]) cube([1000, 1000, 1000]);
-                    //translate([SPINE_PRE_LEN-1000, -500, -500]) cube([1000, 1000, 1000]);
-                }
-            }
+				if (is_cut && N_GAP +S_GAP > 0) {
+					translate([SPINE_PRE_LEN -H_GAP, lr*dist, SPINE_RAISE +FUSE_SHIFT -vd]) 
+					rotate([0, SPINE_STYLE ==3 ? SPINE_DIP :0, lr*SPINE_FAN]) 
+					rect_spine(NECK_LEN +H_GAP+N_GAP +S_GAP +cut_adj, 
+							SPINE_HT +2*cut_adj, 
+							SPINE_WTH +2*cut_adj,
+							tented=SPINE_TENTED);
+					
+					translate([SPINE_PRE_LEN -H_GAP +N_GAP +S_GAP, lr*dist, SPINE_RAISE +FUSE_SHIFT -vd]) 
+					rotate([0, SPINE_STYLE ==3 ? SPINE_DIP :0, lr*SPINE_FAN]) 
+					rect_spine(SPINE_LEN +H_GAP+cut_adj, 
+							SPINE_HT +2*cut_adj, 
+							SPINE_WTH +2*cut_adj,
+							tented=SPINE_TENTED);
+				} else {
+					translate([SPINE_PRE_LEN -H_GAP, lr*dist, SPINE_RAISE +FUSE_SHIFT -vd]) 
+					rotate([0, SPINE_STYLE ==3 ? SPINE_DIP :0, lr*SPINE_FAN]) 
+					rect_spine(SPINE_LEN + N_GAP +S_GAP+H_GAP +cut_adj, 
+							SPINE_HT +2*cut_adj, 
+							SPINE_WTH +2*cut_adj,
+							tented=SPINE_TENTED);
+				}
+				
+				if (is_cut && SPINE_STYLE == 3) {
+					// cut groove above actual spine in neck
+					difference() {
+						translate([SPINE_PRE_LEN -H_GAP +N_GAP +S_GAP, lr*dist, SPINE_RAISE +2*SPINE_HT-vd]) 
+						rotate([0, SPINE_DIP, lr*SPINE_FAN]) 
+						rect_spine(.8*SPINE_LEN +cut_adj +H_GAP +N_GAP +S_GAP, 
+								4*SPINE_HT+2*cut_adj, 
+								SPINE_WTH +2*cut_adj,
+								tented=SPINE_TENTED, beveled=false);
+						translate([0, -500, 1]) cube([1000, 1000, 1000]);
+						//translate([SPINE_PRE_LEN-1000, -500, -500]) cube([1000, 1000, 1000]);
+					}
+				}
+			}
         }
     }
 }

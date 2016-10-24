@@ -464,7 +464,7 @@ module body() {
         
         // sound port cut
         if (SHOW_BOTTOM && len(search(SNDHOLE_STYLE, [1, 3, 5, 7])) > 0) {
-            echo(str("Sound port area (m^2): ", sport_area));
+            //echo(str("Sound port area (m^2): ", sport_area));
             translate( [NECK_LEN +N_GAP +S_GAP +shoulder_len +(V_GAP >0 ?.7 :.5)*torso_len, 
                        0, -.2*body_rad*BOTTOM_SCALE -V_GAP]) 
             sound_port(.75*body_rad);
@@ -487,7 +487,7 @@ module body() {
         // top oval hole cut
         if (SHOW_TOP && len(search(SNDHOLE_STYLE, [6, 7, 8, 9])) > 0) {  
             echo(str("Oval holes total area (m^2): ", harea));
-            translate( [NECK_LEN +N_GAP +S_GAP +shoulder_len +(1-OVAL_PLCMT_RATIO)*body_rad, 0, 0])
+            translate( [NECK_LEN +N_GAP +S_GAP +shoulder_len +(1-OVAL_PLCMT_RATIO)*body_rad, 0, -FUSE_SHIFT])
             oval_holes(body_rad, front_scale, oval_len, oval_wth);
         }
         
@@ -557,7 +557,7 @@ module body() {
         
         if (SHOW_TOP && (HEAD_STYLE==0 || HEAD_STYLE==2) && G_GAP > 0) {
             translate([STR_GUIDE_PLCMT +N_GAP +S_GAP, 0, 
-                        BRDG_SET -STR_GUIDE_SET_OFF_BRDG]) 
+                        BRDG_SET -STR_GUIDE_SET_OFF_BRDG +.5]) 
                 strings_guide(is_cut = true); 
         }
         
@@ -1092,7 +1092,7 @@ module deco_frets_from_nut(last_offset,last_fwth,n,
     fretbd_hd_wth = NUT_HOLE_GAP*NUM_STRS;
 	screw_res = DEFRES/2;
 
-    if (last_offset<FRETBD_LEN+last_fwth && last_fwth > MIN_FRET_WTH && n < to) {
+    if (last_offset<FRETBD_LEN+last_fwth && last_fwth > MIN_FRET_WTH && n <= to) {
         cut_dep = 0.1;
         if (len(search(n, [3, 7, NUM_STRS < 6 ? 10 : 9, 15, 19, NUM_STRS < 6 ? 22 :21])) > 0 && n >= from) {
             translate([last_offset - 0.5*last_fwth, 0, FRETBD_HD_TCK -cut_dep]) 

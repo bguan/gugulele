@@ -135,24 +135,23 @@ CHAMBER_BACK_RATIO = HEAD_STYLE == 1 ? .9 :
 SOUND_PORT_SCALE = V_GAP > 0 ? [.5, 1.5, .25*BOTTOM_SCALE] : 
                     [.6, 1.5, .25*BOTTOM_SCALE];
 
-// Helmholz target: 
-// 1568Hz G6 for all ukes, 1318Hz E6 for baritone, 
-// and 1047Hz C6 for guitar but classically should be:
-// Pocket C7 2093Hz, Soprano A6 1760Hz, Concert G6 1568Hz, Tenor C6 1047Hz, 
-// Baritone A5 880Hz, Guitar E5 660Hz
+// Helmholz target: classically should be:
+// Pocket C, Soprano A, Concert G, Tenor C, Baritone A, Guitar E
+// but with gugulele I aim for
+// Pocket A4 440, Soprano E4 330, Concert D4 294, Tenor C4 262, Baritone C4 220, Guitar E3 165
 TOP_HOLE_RATIO = [.1874, .1975, .215, .217, .22, .2][MODEL]; // of body_rad
-OVAL_LEN_RATIO = SNDHOLE_STYLE >= 8 ? [.3, .45, .5, .48, .4, .6][MODEL] :
+OVAL_LEN_RATIO = SNDHOLE_STYLE >= 8 ? [.42, .42, .42, .42, .4, .43][MODEL] :
 				 SNDHOLE_STYLE >= 6 ? .25 : 0; // of body_rad
 HOOK_WTH_RATIO = [.12, .12, .12, .12, .12, .12][MODEL]; // of body_rad
 HOOK_LEN_RATIO = [.45, .48, .55, .52, .5, .45][MODEL]; // of body_rad
-OVAL_WTH_RATIO = SNDHOLE_STYLE >= 8 ? [.1, .13, .15, .15, .15, .18][MODEL]: // of body_rad
+OVAL_WTH_RATIO = SNDHOLE_STYLE >= 8 ? [.12, .12, .12, .12, .1, .11][MODEL]: // of body_rad
                  SNDHOLE_STYLE >= 6 ? [.063, .071, .0841, .0857, .0645, .065][MODEL] : 0; 
-OVAL_PLCMT_RATIO = [.4, .4, .4, .4, .4, .4][MODEL]; // plcmt of oval hole(s)
-OVAL_WIDEN_RATIO = [.65, .65, .65, .65, .65, .6][MODEL]; // widen gap of oval holes(s)
-OVAL_ANGLE = [21, 21, 18, 18, 18, 18][MODEL];
+OVAL_PLCMT_RATIO = [.6, .6, .6, .6, .6, .6][MODEL]; // plcmt of oval hole(s)
+OVAL_WIDEN_RATIO = [.58, .58, .58, .58, .58, .55][MODEL]; // widen gap of oval holes(s)
+OVAL_ANGLE = [24, 24, 24, 24, 24, 24][MODEL];
 
 // angle of flare out at shoulder, between 45 - 180, affects girth 
-SHOULDER_FLARE = [NUM_STRS < 4 ? 102: 100, 101, 102, 102.6, 103, 102][MODEL]; 
+SHOULDER_FLARE = [NUM_STRS < 4 ? 102: 100, 101, 102, 102.6, 103, 104][MODEL]; 
 
 // Endpin/pickup specs
 ENDPIN_RAD = 5+BOT_RND_RAD; // for strap pin or 1/4" pick up jack 
@@ -229,9 +228,9 @@ PEGS_SHIFT = -HEAD_STEM + [-6,-7,-19,-19,-19,-20][MODEL]; // pegs plcmt
 PEGS_DIVIDE = MODEL < 5 ? .5 : .6; // gap ratio btw L/R rows
 
 // Fretboard specs
-FRETBD_LEN = [.615, .615, .615, .615, .615, .615][MODEL]*SCALE_LEN;
+FRETBD_LEN = [.615, .615, .615, .615, .615, .7][MODEL]*SCALE_LEN;
 FRETBD_HD_TCK = [2, 3, 3, 3, 3, 4][MODEL];
-FRETBD_RISE = MODEL < 5 ? 1.4 : 1.1; // degree
+FRETBD_RISE = MODEL < 5 ? 1.4 : 1.3; // degree
 FRET_RAD = 1.3; 
 FRETBD_EXTN = [7,8,9,10,11,12][MODEL];
 FRET_INSET = 0.2;
@@ -373,7 +372,7 @@ TUNER_FANOUT_RAD = butt_len(NECK_LEN, NECK_HEAD_WTH, NECK_SLOPE, SCALE_LEN,
 					-max(TUNER_TOP_RAD, TUNER_BOT_RAD) ;
 					//-max(TOP_RND_RAD, BOT_RND_RAD) -1;
 STR_GUIDE_PLCMT = SCALE_LEN + max(TUNER_CAVITY_DEP, TUNER_FANOUT_RAD -3*TUNER_TOP_RAD) -NUM_STRS;
-STR_GUIDE_SET_OFF_BRDG = [1.5, 2, 2.5, 3, 3.5, 4][MODEL];
+STR_GUIDE_SET_OFF_BRDG = [0, 2, 2.5, 3, 3.5, 4][MODEL];
 
 //echo(str(
 //    "TUNER_FANOUT_RAD = ", TUNER_FANOUT_RAD, 
