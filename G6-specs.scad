@@ -12,9 +12,9 @@ BOT_RND_RAD = 0; // rounding of bottom layer of tailend of body
 HD_RND_RAD = 0; // rounding of head 
 
 // rendering controls
-HIRES = 12;
 DEFRES = 12;
-LORES = 12;
+HIRES = 2*DEFRES;
+LORES = DEFRES/2;
 SHOW_HEAD = true;
 SHOW_FRETBD = true;
 SHOW_NECK = true;
