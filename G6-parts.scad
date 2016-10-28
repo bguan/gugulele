@@ -1174,7 +1174,8 @@ module strings() {
 
 module xbrace(body_rad, butt_len) {    
     rod_vrad = .2*body_rad*TOP_SCALE;
-	rod_lift = [7.5, 7, 6.5, 6, 6, 5.5][MODEL]*rod_vrad;
+	//rod_lift = [7.5, 7, 6.5, 6, 6, 5.5][MODEL]*rod_vrad;
+	rod_lift = body_rad*TOP_SCALE -rod_vrad;
     
     intersection() {
         union() {
