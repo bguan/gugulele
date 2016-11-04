@@ -207,7 +207,7 @@ module body() {
     screws_xy = [
                  [NECK_LEN +N_GAP +.1*shoulder_len, body_rad*.205],
                  [NECK_LEN +N_GAP +.5*shoulder_len, body_rad*.27], 
-                 [NECK_LEN +N_GAP + .95*shoulder_len, body_rad*.54], 
+                 [NECK_LEN +N_GAP +.9*shoulder_len, body_rad*.5], 
                  [NECK_LEN +N_GAP +shoulder_len +torso_len*.34, body_rad*.82 ],
                  [NECK_LEN +N_GAP +shoulder_len +torso_len, body_rad*.965],
                  [body_len +N_GAP -10, body_rad*.55],
@@ -421,7 +421,7 @@ module body() {
 				for (lr = [-1, 1]) {
 					translate([NECK_LEN +N_GAP +(1-SHOULDER_SPLIT_RATIO)*shoulder_len + SHOULDER_JNT_LEN/2, 
 								lr*(-6+SHOULDER_JNT_WTH/2), V_GAP == 0 ? 50 : -V_GAP/2]) {
-						screw(NECK_SCREW_MDL, thread=SCREW_THREAD);
+						screw(SHOULDER_SCREW_MDL, thread=SCREW_THREAD);
 					}
 				}
 			}
@@ -437,13 +437,12 @@ module body() {
 
 		if (S_GAP > 0 && USE_SCREWS) {
 			//screw shoulders together
-			for (dz = [0, -V_GAP]) 
 			for (fb = [0, 1]) 
 			for (lr = [-1, 1])
 				translate([NECK_LEN +N_GAP +fb*S_GAP + (1-SHOULDER_SPLIT_RATIO)*shoulder_len + SHOULDER_JNT_LEN/2, 
-							lr*(-6+SHOULDER_JNT_WTH/2), dz+1]) {
-					cylinder(r=HEAD_SCREW_HEAD_RAD +FIT_TOL, h=40);
-					screw(NECK_SCREW_MDL, thread=SCREW_THREAD);
+							lr*(-4+SHOULDER_JNT_WTH/2), (V_GAP > 0 ? -V_GAP-4 : -2)]) {
+					cylinder(r=SHOULDER_SCREW_HEAD_RAD +FIT_TOL, h=40);
+					screw(SHOULDER_SCREW_MDL, thread=SCREW_THREAD);
 				}
 		}
         
@@ -524,7 +523,7 @@ module body() {
 						rotate([0, -FRETBD_RISE, 0]) 
 						translate([dx, 0, 0]) 
 						deco_frets_from_nut(F1_LEN, F1_LEN / SEMI_RATIO, 1, true, 
-							from=(dx == 0 ? 0 : dx == N_GAP || dx == S_GAP ? 9 : 17),
+							from=(dx == 0 ? 0 : dx == N_GAP || dx == S_GAP ? 12 : 17),
 							to=(dx + N_GAP + S_GAP == 0 ? 24 : dx == 0 ? 20 : 24));
 					}
 				}   
@@ -1094,7 +1093,7 @@ module deco_frets_from_nut(last_offset,last_fwth,n,
 
     if (last_offset<FRETBD_LEN+last_fwth && last_fwth > MIN_FRET_WTH && n <= to) {
         cut_dep = 0.1;
-        if (len(search(n, [3, 7, NUM_STRS < 6 ? 10 : 9, 15, 19, NUM_STRS < 6 ? 22 :21])) > 0 && n >= from) {
+        if (len(search(n, [3, 7, NUM_STRS < 6 ? 10 : 9, 15, 19, NUM_STRS < 6 ? 21 :21])) > 0 && n >= from) {
             translate([last_offset - 0.5*last_fwth, 0, FRETBD_HD_TCK -cut_dep]) 
             if (use_screw) {
                 translate([0, 0, cut_dep-NECK_SCREW_HEAD_TCK]) {
@@ -1144,7 +1143,7 @@ module deco_frets_from_nut(last_offset,last_fwth,n,
                     cube([3, 16, cut_dep + (is_cut ? 0.1 : 0)]);
             }
         } else if (F_GAP > 0 && n == 1 && n >= from && use_screw && !FORCE_FRETBD_SCREWS) {
-            df = 2.5;
+            df = (SPINE_GAP>0 ? 2.5 : 7.5);
             translate([last_offset - 0.5*last_fwth, 0, FRETBD_HD_TCK -cut_dep]) 
             for (lr = [df, -df]) {
                 translate([0, lr*NECK_SCREW_HEAD_RAD, cut_dep-NECK_SCREW_HEAD_TCK]) {
