@@ -174,7 +174,8 @@ module body() {
     hook_len = HOOK_LEN_RATIO*torso_len;
     fholes_area = 2 *2 *hook_area(hook_wth, hook_len);
     
-    top_hole_area = PI*pow(TOP_HOLE_RATIO*body_rad, 2);
+    top_hole_rad = TOP_HOLE_RATIO*body_rad;
+    top_hole_area = PI*pow(top_hole_rad, 2);
     
     oval_len = OVAL_LEN_RATIO*body_rad; //1.4*front_scale*.12*body_rad;
     oval_wth = OVAL_WTH_RATIO*body_rad;
@@ -195,7 +196,12 @@ module body() {
     sndbd_tck = max_tck;
     echo(str("sndbd_tck (mm): ", sndbd_tck));
 
-    tube_len = sndbd_tck + 1.7*(oval_len+oval_wth)/2;
+    tube_len = sndbd_tck + 1.7*[0, 
+								hook_len, 
+								top_hole_rad, 
+								oval_len+oval_wth, 
+								(oval_len+oval_wth)/2
+							   ][(SNDHOLE_STYLE -SNDHOLE_STYLE%2)/2];
 
     helmholz_freq = (SND_AIR_SPEED * sqrt(harea/(hvol * .001*tube_len)))/(2 *PI);
     echo(str("helmholz_freq = ", helmholz_freq, "hz"));
@@ -375,10 +381,12 @@ module body() {
                             }
                             
                             // chamber cut
-                            translate([NECK_LEN +N_GAP +S_GAP +shoulder_len +torso_len -CHAMBER_FRONT_SHIFT, 
-                                        0, CHAMBER_UP_SHIFT]) 
-                            rotate([0, -CHAMBER_TILT, 0])
-                            chamber(chamber_front_scale, chamber_back_scale, chamber_rad);
+                            if (CHAMBER_BODY_RATIO > 0) {
+								translate([NECK_LEN +N_GAP +S_GAP +shoulder_len +torso_len -CHAMBER_FRONT_SHIFT, 
+											0, CHAMBER_UP_SHIFT]) 
+								rotate([0, -CHAMBER_TILT, 0])
+								chamber(chamber_front_scale, chamber_back_scale, chamber_rad);
+							}
                         }
                         
 						difference() {
@@ -429,10 +437,12 @@ module body() {
         
         if (SHOW_SHOULDER_TOP || SHOW_SHOULDER_BOTTOM || SHOW_TOP || SHOW_BOTTOM) {
             // chamber cut
-			translate([NECK_LEN +N_GAP +S_GAP +shoulder_len +torso_len -CHAMBER_FRONT_SHIFT, 
+            if (CHAMBER_BODY_RATIO > 0) {
+				translate([NECK_LEN +N_GAP +S_GAP +shoulder_len +torso_len -CHAMBER_FRONT_SHIFT, 
 							0, CHAMBER_UP_SHIFT]) 
 				rotate([0, -CHAMBER_TILT, 0])
 				chamber(chamber_front_scale, chamber_back_scale, chamber_rad);
+			}
         }
 
 		if (S_GAP > 0 && USE_SCREWS) {
@@ -1025,7 +1035,7 @@ module bridge(is_cut = false) {
 
 module strings_guide(is_cut = false) {
     rad = STR_GUIDE_ROD_RAD+(is_cut? FIT_TOL :0);
-    ht = rad +3*STR_HOLE_RAD +STR_GUIDE_SET_OFF_BRDG;
+    ht = rad +3*STR_HOLE_RAD +STR_GUIDE_SET_OFF_BRDG +STR_GUIDE_XHT;
     wth = NUM_STRS*NUT_HOLE_GAP +2*NECK_SLOPE*STR_GUIDE_PLCMT -2*rad;   
     gap = wth/(NUM_STRS-1);
     difference() {   

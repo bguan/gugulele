@@ -314,7 +314,7 @@ module chamber(chamber_front_scale, chamber_back_scale, chamber_rad) {
 
 module fhole(shoulder_len, torso_len, body_rad, hook_wth, hook_len) {
     translate( [NECK_LEN +N_GAP +S_GAP +shoulder_len +[.8, .6, .8][BRACE_STYLE]*torso_len, 
-                -body_rad *.55, -BODY_TCK])  
+                -body_rad *.6, -BODY_TCK])  
     rotate([0, 0, [-3, -15, -8][BRACE_STYLE]]) 
         scurve(hook_wth, hook_len, 5*BODY_TCK);
 }
