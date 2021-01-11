@@ -50,11 +50,11 @@ If you set the resolution as suggested in the example above, it could take a few
 ## Credits
 G6 uses the excellent Nuts n Bolts library (https://github.com/JohK/nutsnbolts) to render screws and holes.
 
-If you use G6 to generate and print a ukulele successfully please give credit to G6 and shoot me an email!
+If you use G6 to generate and print a ukulele successfully please give credit to G6 and shoot me an email! brian dot guan at gmail dot com.
 
 
 ## Random Thoughts
 The hardest part for me is to deal with the lack of spline in OpenSCAD.  I have to subtract scaled arc from rectangle and revolve it to get to a funnel shape for the shoulder, and similarly scaled different quadrants of sphere to get an ellipsoid.  Also due to "functional" nature of OpenSCAD, I have to contort the fret calculation by using some crazy recursive function.  Filleting also is a challenge as I have to accomplish that with Minkowski sum of small sphere
 and the main parts with sharp edges.
 
-The most painful part is that OpenSCAD is painfully slow when rendering at high resolution, as it is single threaded and not utilizing GPU unlike professional 3D CAD tools.  I intend to port the script to a different language/tech someday e.g. OnShape Feature Script (https://www.onshape.com/featurescript).
+The most painful part is that OpenSCAD is painfully slow when rendering at high resolution, as it is single threaded and not utilizing GPU unlike professional 3D CAD tools.  I have ported this to OnShape Feature Script. See the [Gugulele public document] (https://cad.onshape.com/documents/5d1958b45f2484ebebb64adf/w/d0b2164f9e843f6c6ce251e7/e/505e487213bab5c385cd9bb5) there.
